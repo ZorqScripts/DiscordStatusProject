@@ -110,9 +110,8 @@ const MainPage = ({
   const isPlaying = !!lanyard.spotify || lanyard.listening_to_spotify;
   const customStatus = lanyard.activities?.find((a) => a.type === 4)?.state;
 
-  // Level Logic (Birthdate: June 20, 2008)
   const calculateLevel = () => {
-    const birthDate = new Date(2008, 5, 20); // Months are 0-indexed
+    const birthDate = new Date(2008, 5, 20);
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
     const m = today.getMonth() - birthDate.getMonth();
@@ -164,7 +163,8 @@ const MainPage = ({
       transition={{ duration: 1, ease: "easeOut" }}
       className="relative min-h-screen bg-[#08080c] overflow-hidden text-white font-sans selection:bg-white/10 cursor-none"
     >
-      <div className="fixed top-12 right-12 z-[100] opacity-30 font-black text-xl tracking-[0.3em] uppercase italic select-none font-mono">
+      {/* BRANDING: BIGGER & BOLDER */}
+      <div className="fixed top-12 right-12 z-[100] opacity-40 font-black text-4xl tracking-tighter uppercase italic select-none font-mono">
         zorq.page
       </div>
 
@@ -224,12 +224,19 @@ const MainPage = ({
                   src={`https://cdn.discordapp.com/avatars/${lanyard.discord_user.id}/${lanyard.discord_user.avatar}.png?size=512`}
                   className="w-32 h-32 rounded-full border-4 border-zinc-800 object-cover shadow-2xl"
                 />
-                <div
+
+                {/* FLASHING STATUS DOT */}
+                <motion.div
+                  animate={{ opacity: [1, 0.4, 1], scale: [1, 1.1, 1] }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
                   className="absolute bottom-2 right-2 w-6 h-6 rounded-full border-4 border-[#0f0f11]"
                   style={{ backgroundColor: activeColor }}
                 />
 
-                {/* OVAL CHAT BUBBLE (NO EMOJI) */}
                 {customStatus && (
                   <motion.div
                     initial={{ opacity: 0, x: -10 }}
@@ -251,7 +258,6 @@ const MainPage = ({
                 Full-Stack Architect
               </p>
 
-              {/* LEVEL & PROGRESS SYSTEM */}
               <div className="w-full space-y-3 text-left mb-auto">
                 <div className="bg-white/[0.03] border border-white/5 p-5 rounded-2xl w-full">
                   <div className="flex justify-between items-end mb-2">
@@ -364,13 +370,13 @@ const MainPage = ({
               </div>
               <div className="bg-[#0f0f11] border border-white/5 p-3 rounded-xl text-center">
                 <p className="text-[8px] opacity-60 font-black uppercase mb-0.5">
-                  Node
+                  Location
                 </p>
-                <p className="text-[10px] font-bold">ASIA_DL</p>
+                <p className="text-[10px] font-bold">INDIA</p>
               </div>
               <div className="bg-[#0f0f11] border border-white/5 p-3 rounded-xl text-center">
                 <p className="text-[8px] opacity-60 font-black uppercase mb-0.5">
-                  Relay
+                  Ping
                 </p>
                 <p className="text-[10px] font-bold">0.002MS</p>
               </div>
@@ -379,9 +385,9 @@ const MainPage = ({
         </div>
       </div>
 
-      {/* CLOCK SHIFTED TO BOTTOM CENTER */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-2 bg-white/[0.02] border border-white/5 rounded-full backdrop-blur-md">
-        <p className="text-[10px] font-black tracking-[0.3em] opacity-50 font-mono italic">
+      {/* BIGGER CLOCK AT BOTTOM CENTER */}
+      <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] px-10 py-4 bg-white/[0.03] border border-white/10 rounded-full backdrop-blur-xl shadow-2xl">
+        <p className="text-2xl font-black tracking-[0.4em] text-white/80 font-mono italic">
           {time}
         </p>
       </div>
