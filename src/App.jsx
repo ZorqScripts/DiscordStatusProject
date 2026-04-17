@@ -22,49 +22,6 @@ import {
 
 const DISCORD_ID = "900965149496737874";
 
-// --- BIOS-LEVEL HOVER TAG ---
-const BiosHUD = ({ cursorX, cursorY, hoverData }) => {
-  return (
-    <AnimatePresence>
-      {hoverData && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9, x: 20, y: 20 }}
-          animate={{ opacity: 1, scale: 1, x: 20, y: 20 }}
-          exit={{ opacity: 0, scale: 0.9 }}
-          style={{ x: cursorX, y: cursorY }}
-          className="fixed pointer-events-none z-[20000] font-mono whitespace-nowrap"
-        >
-          <div className="bg-black/80 border border-white/20 backdrop-blur-md p-2 rounded-sm shadow-[0_0_20px_rgba(0,0,0,0.5)]">
-            <div className="flex items-center gap-2 border-b border-white/10 pb-1 mb-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-              <span className="text-[8px] text-blue-400 font-black tracking-tighter uppercase">
-                Metadata_Inspect
-              </span>
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-[7px] text-white/40 uppercase tracking-tighter">
-                ID: <span className="text-white/90">{hoverData.id}</span>
-              </p>
-              <p className="text-[7px] text-white/40 uppercase tracking-tighter">
-                Class: <span className="text-white/90">{hoverData.type}</span>
-              </p>
-              <p className="text-[7px] text-white/40 uppercase tracking-tighter">
-                Status: <span className="text-green-500">NOMINAL</span>
-              </p>
-              <p className="text-[7px] text-white/40 uppercase tracking-tighter">
-                Latency:{" "}
-                <span className="text-white/90">
-                  0.00{Math.floor(Math.random() * 9)}ms
-                </span>
-              </p>
-            </div>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-};
-
 // --- SMD COMMAND PALETTE ---
 const CommandPalette = ({ isOpen, onClose, activeColor }) => {
   const [input, setInput] = useState("");
@@ -248,7 +205,6 @@ const MainPage = ({
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
   const [logs, setLogs] = useState([]);
   const [isLowPower, setIsLowPower] = useState(false);
-  const [hoverData, setHoverData] = useState(null);
 
   // CMD key listener
   useEffect(() => {
@@ -315,31 +271,26 @@ const MainPage = ({
 
   const projects = [
     {
-      id: "DISC_AUTO",
       name: "Discord Automation",
       desc: "Advanced bot architectures.",
       icon: <Bot size={18} />,
     },
     {
-      id: "RBLX_PHYS",
       name: "Roblox Mechanics",
       desc: "Optimized movement physics.",
       icon: <Zap size={18} />,
     },
     {
-      id: "SRV_ARCH",
       name: "Server Architecture",
       desc: "Environment deployment.",
       icon: <Server size={18} />,
     },
     {
-      id: "SYNC_RELAY",
       name: "Cross-Platform Sync",
       desc: "Discord relay bridges.",
       icon: <Share2 size={18} />,
     },
     {
-      id: "WEB_INFRA",
       name: "Web Infrastructure",
       desc: "High-availability hosting.",
       icon: <Globe size={18} />,
@@ -359,7 +310,6 @@ const MainPage = ({
       transition={{ duration: 1, ease: "easeOut" }}
       className="relative min-h-screen bg-[#08080c] overflow-hidden text-white font-sans selection:bg-white/10 cursor-none"
     >
-      <BiosHUD cursorX={cursorX} cursorY={cursorY} hoverData={hoverData} />
       <CommandPalette
         isOpen={isPaletteOpen}
         onClose={() => setIsPaletteOpen(false)}
@@ -415,10 +365,6 @@ const MainPage = ({
         <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
           <motion.div
             ref={cardRef}
-            onMouseEnter={() =>
-              setHoverData({ id: "ZORQ_PRFL", type: "CORE_ENTITY" })
-            }
-            onMouseLeave={() => setHoverData(null)}
             style={{
               rotateX: cardRotateX,
               rotateY: cardRotateY,
@@ -456,6 +402,18 @@ const MainPage = ({
                     color: isLowPower ? "#555" : activeColor,
                   }}
                 />
+                {customStatus && (
+                  <motion.div
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="absolute left-full top-4 ml-4 px-5 py-2.5 bg-[#1a1a1d] border border-white/10 rounded-full shadow-2xl whitespace-nowrap z-50"
+                  >
+                    <p className="text-[11px] font-bold text-white/90 italic">
+                      {customStatus}
+                    </p>
+                    <div className="absolute -left-1.5 top-1/2 -translate-y-1/2 w-3 h-3 bg-[#1a1a1d] border-l border-b border-white/10 rotate-45 -z-10" />
+                  </motion.div>
+                )}
               </div>
 
               <h1 className="text-3xl font-black tracking-tighter mb-1 uppercase">
@@ -469,14 +427,8 @@ const MainPage = ({
 
               <div className="w-full space-y-3 text-left mb-auto">
                 <motion.div
-                  onMouseEnter={() => {
-                    setIsLevelHovered(true);
-                    setHoverData({ id: "LVL_MTR", type: "SYS_CALC" });
-                  }}
-                  onMouseLeave={() => {
-                    setIsLevelHovered(false);
-                    setHoverData({ id: "ZORQ_PRFL", type: "CORE_ENTITY" });
-                  }}
+                  onMouseEnter={() => setIsLevelHovered(true)}
+                  onMouseLeave={() => setIsLevelHovered(false)}
                   className="bg-white/[0.03] border border-white/5 p-5 rounded-2xl w-full transition-all duration-300 hover:bg-white/[0.06]"
                 >
                   <div className="flex justify-between items-end mb-2">
@@ -508,16 +460,19 @@ const MainPage = ({
                       className="h-full shadow-[0_0_10px_rgba(255,255,255,0.2)]"
                     />
                   </div>
+                  <div className="flex justify-between mt-2">
+                    <p className="text-[8px] opacity-40 font-bold uppercase tracking-widest">
+                      {calculateYearProgress().toFixed(1)}% EXP
+                    </p>
+                    <p className="text-[8px] opacity-40 font-bold uppercase tracking-widest">
+                      {isLevelHovered ? "Evolution: " : "Next: "} LVL{" "}
+                      {calculateLevel() + 1}
+                    </p>
+                  </div>
                 </motion.div>
               </div>
             </div>
             <button
-              onMouseEnter={() =>
-                setHoverData({ id: "LINK_EXT", type: "GATEWAY" })
-              }
-              onMouseLeave={() =>
-                setHoverData({ id: "ZORQ_PRFL", type: "CORE_ENTITY" })
-              }
               style={{ backgroundColor: isLowPower ? "#222" : activeColor }}
               className="w-full mt-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:brightness-110 shadow-xl transition-all"
             >
@@ -530,10 +485,6 @@ const MainPage = ({
               {projects.map((p, i) => (
                 <div
                   key={i}
-                  onMouseEnter={() =>
-                    setHoverData({ id: p.id, type: "V_MODULE" })
-                  }
-                  onMouseLeave={() => setHoverData(null)}
                   className="bg-[#0f0f11] border border-white/5 p-6 rounded-[2rem] hover:bg-white/[0.02] transition-all flex flex-col justify-center"
                 >
                   <div
@@ -549,13 +500,7 @@ const MainPage = ({
                 </div>
               ))}
 
-              <div
-                onMouseEnter={() =>
-                  setHoverData({ id: "SPTFY_API", type: "EXTERNAL_FEED" })
-                }
-                onMouseLeave={() => setHoverData(null)}
-                className="bg-[#0f0f11] border border-white/10 rounded-[2rem] p-5 flex items-center gap-4 relative overflow-hidden group"
-              >
+              <div className="bg-[#0f0f11] border border-white/10 rounded-[2rem] p-5 flex items-center gap-4 relative overflow-hidden group">
                 <div className="relative w-14 h-14 flex-shrink-0">
                   <motion.div
                     animate={isPlaying && !isLowPower ? { rotate: 360 } : {}}
@@ -592,36 +537,40 @@ const MainPage = ({
                       ? lanyard.spotify.song
                       : "Awaiting Signal..."}
                   </h3>
+                  <div className="mt-3 h-0.5 w-full bg-white/5 rounded-full overflow-hidden">
+                    <motion.div
+                      animate={{ width: isPlaying ? "70%" : "0%" }}
+                      className={`h-full ${isLowPower ? "bg-white/10" : "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]"}`}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
 
             <div className="grid grid-cols-3 gap-3">
-              {["Signal", "Location", "Ping"].map((label, idx) => (
-                <div
-                  key={idx}
-                  className="bg-[#0f0f11] border border-white/5 p-3 rounded-xl text-center"
+              <div className="bg-[#0f0f11] border border-white/5 p-3 rounded-xl text-center">
+                <p className="text-[8px] opacity-60 font-black uppercase mb-0.5">
+                  Signal
+                </p>
+                <p
+                  className="text-[10px] font-bold uppercase"
+                  style={{ color: isLowPower ? "#555" : activeColor }}
                 >
-                  <p className="text-[8px] opacity-60 font-black uppercase mb-0.5">
-                    {label}
-                  </p>
-                  <p
-                    className="text-[10px] font-bold uppercase"
-                    style={{
-                      color:
-                        label === "Signal" && !isLowPower
-                          ? activeColor
-                          : "inherit",
-                    }}
-                  >
-                    {label === "Signal"
-                      ? status
-                      : label === "Location"
-                        ? "INDIA"
-                        : "0.002MS"}
-                  </p>
-                </div>
-              ))}
+                  {status}
+                </p>
+              </div>
+              <div className="bg-[#0f0f11] border border-white/5 p-3 rounded-xl text-center">
+                <p className="text-[8px] opacity-60 font-black uppercase mb-0.5">
+                  Location
+                </p>
+                <p className="text-[10px] font-bold">INDIA</p>
+              </div>
+              <div className="bg-[#0f0f11] border border-white/5 p-3 rounded-xl text-center">
+                <p className="text-[8px] opacity-60 font-black uppercase mb-0.5">
+                  Ping
+                </p>
+                <p className="text-[10px] font-bold">0.002MS</p>
+              </div>
             </div>
           </div>
         </div>
@@ -665,10 +614,6 @@ const MainPage = ({
 
         <div className="flex flex-col items-end gap-4 pointer-events-auto">
           <button
-            onMouseEnter={() =>
-              setHoverData({ id: "PWR_CTL", type: "SYS_TOGGLE" })
-            }
-            onMouseLeave={() => setHoverData(null)}
             onClick={() => setIsLowPower(!isLowPower)}
             className={`flex items-center gap-3 px-4 py-2 rounded-full border transition-all duration-500 ${isLowPower ? "bg-white/10 border-white/20 text-white" : "bg-red-500/10 border-red-500/20 text-red-500 hover:bg-red-500/20"}`}
           >
@@ -677,13 +622,8 @@ const MainPage = ({
               {isLowPower ? "ACTIVATE_CORE" : "LOW_POWER_MODE"}
             </span>
           </button>
-          <div
-            onMouseEnter={() =>
-              setHoverData({ id: "CMD_PROMPT", type: "IO_INTERFACE" })
-            }
-            onMouseLeave={() => setHoverData(null)}
-            className="group flex items-center gap-3 px-4 py-2 bg-white/[0.02] border border-white/10 rounded-full opacity-40 hover:opacity-100 transition-opacity"
-          >
+
+          <div className="group flex items-center gap-3 px-4 py-2 bg-white/[0.02] border border-white/10 rounded-full opacity-40 hover:opacity-100 transition-opacity">
             <Terminal size={14} />
             <span className="text-[9px] font-bold uppercase tracking-[0.2em]">
               Press ` to open command prompt
@@ -763,10 +703,15 @@ export default function App() {
   }, [cursorX, cursorY, cardRotateX, cardRotateY]);
 
   if (!lanyard) return <div className="min-h-screen bg-[#08080c]" />;
-  const activeColor =
-    { online: "#22c55e", dnd: "#ef4444", idle: "#f59e0b", offline: "#64748b" }[
-      lanyard.discord_status
-    ] || "#64748b";
+
+  const status = lanyard.discord_status;
+  const statusColors = {
+    online: "#22c55e",
+    dnd: "#ef4444",
+    idle: "#f59e0b",
+    offline: "#64748b",
+  };
+  const activeColor = statusColors[status] || statusColors.offline;
 
   return (
     <AnimatePresence mode="wait">
@@ -790,7 +735,7 @@ export default function App() {
           bgTextX={bgTextX}
           bgTextY={bgTextY}
           activeColor={activeColor}
-          status={lanyard.discord_status}
+          status={status}
           cardRef={mainCardRef}
         />
       )}
