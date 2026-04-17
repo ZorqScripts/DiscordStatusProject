@@ -112,12 +112,14 @@ const MainPage = ({
   const [isLevelHovered, setIsLevelHovered] = useState(false);
   const [hoveredProject, setHoveredProject] = useState(null);
   const [logs, setLogs] = useState([]);
+
+  const statusDotRef = useRef(null);
   const projectRefs = useRef([]);
 
   // Terminal Logging Logic
   useEffect(() => {
     const addLog = (msg) => {
-      setLogs((prev) => [...prev.slice(-4), { id: Date.now(), text: msg }]);
+      setLogs((prev) => [...prev.slice(-8), { id: Date.now(), text: msg }]);
     };
 
     if (isPlaying)
@@ -132,9 +134,10 @@ const MainPage = ({
         "Memory heap optimized",
         "Handshake active",
         "Encrypted link maintained",
+        "Latency stabilized at 0.002ms",
       ];
       addLog(`SYSTEM: ${phrases[Math.floor(Math.random() * phrases.length)]}`);
-    }, 8000);
+    }, 6000);
 
     return () => clearInterval(interval);
   }, [isPlaying, status]);
@@ -192,19 +195,6 @@ const MainPage = ({
     },
   ];
 
-  const techStack = [
-    "JAVASCRIPT",
-    "REACT",
-    "LUA",
-    "NODE.JS",
-    "PYTHON",
-    "TAILWIND",
-    "FRAMER MOTION",
-    "DISCORD.JS",
-    "MONGODB",
-    "TYPESCRIPT",
-  ];
-
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -212,23 +202,26 @@ const MainPage = ({
       transition={{ duration: 1, ease: "easeOut" }}
       className="relative min-h-screen bg-[#08080c] overflow-hidden text-white font-sans selection:bg-white/10 cursor-none"
     >
-      {/* MARQUEE TECH STACK */}
-      <div className="fixed top-0 left-0 w-full overflow-hidden bg-white/[0.02] border-b border-white/5 py-2 z-[101] backdrop-blur-sm">
-        <motion.div
-          animate={{ x: [0, -1000] }}
-          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-          className="flex whitespace-nowrap gap-12"
-        >
-          {[...techStack, ...techStack].map((tech, i) => (
-            <span
-              key={i}
-              className="text-[9px] font-black tracking-[0.4em] opacity-30"
-            >
-              {tech}
-            </span>
-          ))}
-        </motion.div>
-      </div>
+      {/* CONNECTION LINES LAYER */}
+      <svg className="fixed inset-0 w-full h-full pointer-events-none z-[5] overflow-visible">
+        <AnimatePresence>
+          {hoveredProject !== null &&
+            statusDotRef.current &&
+            projectRefs.current[hoveredProject] && (
+              <motion.path
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 0.2 }}
+                exit={{ opacity: 0 }}
+                d={`M ${statusDotRef.current.getBoundingClientRect().left + 12} ${statusDotRef.current.getBoundingClientRect().top + 12}
+                 L ${projectRefs.current[hoveredProject].getBoundingClientRect().left} ${projectRefs.current[hoveredProject].getBoundingClientRect().top + 40}`}
+                stroke={activeColor}
+                strokeWidth="1"
+                fill="none"
+                strokeDasharray="5,5"
+              />
+            )}
+        </AnimatePresence>
+      </svg>
 
       <div className="fixed top-12 right-12 z-[100] opacity-40 font-black text-4xl tracking-tighter uppercase italic select-none font-mono">
         zorq.page
@@ -292,6 +285,7 @@ const MainPage = ({
                 />
 
                 <motion.div
+                  ref={statusDotRef}
                   animate={{
                     filter: [
                       "brightness(1.5) drop-shadow(0 0 8px currentColor)",
@@ -399,20 +393,6 @@ const MainPage = ({
                   <p className="text-[11px] text-white/30 leading-snug">
                     {p.desc}
                   </p>
-
-                  {/* DYNAMIC CONNECTION LINE */}
-                  {hoveredProject === i && (
-                    <motion.div
-                      layoutId="connection"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 0.15 }}
-                      className="absolute -left-12 top-1/2 w-12 h-[1px]"
-                      style={{
-                        backgroundColor: activeColor,
-                        boxShadow: `0 0 10px ${activeColor}`,
-                      }}
-                    />
-                  )}
                 </div>
               ))}
 
@@ -489,19 +469,28 @@ const MainPage = ({
         </div>
       </div>
 
-      {/* TERMINAL HISTORY FOOTER */}
-      <div className="fixed bottom-0 left-0 w-full z-[100] px-6 pb-4 flex justify-between items-end pointer-events-none">
-        <div className="flex flex-col gap-1">
+      {/* TERMINAL HISTORY FOOTER - BIGGER & MORE VISIBLE */}
+      <div className="fixed bottom-0 left-0 w-full z-[100] px-8 pb-8 flex justify-between items-end pointer-events-none">
+        <div className="flex flex-col gap-2 max-w-md">
+          <div className="flex items-center gap-2 mb-2 opacity-30">
+            <Terminal size={12} />
+            <span className="text-[9px] font-black uppercase tracking-widest">
+              Live System Logs
+            </span>
+          </div>
           <AnimatePresence mode="popLayout">
             {logs.map((log) => (
               <motion.p
                 key={log.id}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 0.4, x: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="font-mono text-[8px] uppercase tracking-widest flex items-center gap-2"
+                initial={{ opacity: 0, x: -15 }}
+                animate={{ opacity: 0.5, x: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                className="font-mono text-[10px] uppercase tracking-widest flex items-center gap-3"
               >
-                <span style={{ color: activeColor }}>&gt;</span> {log.text}
+                <span style={{ color: activeColor }} className="font-bold">
+                  &gt;&gt;
+                </span>{" "}
+                {log.text}
               </motion.p>
             ))}
           </AnimatePresence>
