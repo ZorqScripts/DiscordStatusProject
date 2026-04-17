@@ -110,8 +110,35 @@ const MainPage = ({
   const isPlaying = !!lanyard.spotify || lanyard.listening_to_spotify;
   const customStatus = lanyard.activities?.find((a) => a.type === 4)?.state;
   const [isLevelHovered, setIsLevelHovered] = useState(false);
+  const [hoveredProject, setHoveredProject] = useState(null);
+  const [logs, setLogs] = useState([]);
+  const projectRefs = useRef([]);
 
-  // Level & Birthday Logic
+  // Terminal Logging Logic
+  useEffect(() => {
+    const addLog = (msg) => {
+      setLogs((prev) => [...prev.slice(-4), { id: Date.now(), text: msg }]);
+    };
+
+    if (isPlaying)
+      addLog(`STREAM_SYNC: Receiving audio packets from Spotify...`);
+    addLog(
+      `SIGNAL_STATUS: Node set to INDIA // Status: ${status.toUpperCase()}`,
+    );
+
+    const interval = setInterval(() => {
+      const phrases = [
+        "Kernel stabilized",
+        "Memory heap optimized",
+        "Handshake active",
+        "Encrypted link maintained",
+      ];
+      addLog(`SYSTEM: ${phrases[Math.floor(Math.random() * phrases.length)]}`);
+    }, 8000);
+
+    return () => clearInterval(interval);
+  }, [isPlaying, status]);
+
   const calculateLevel = () => {
     const birthDate = new Date(2008, 5, 20);
     const today = new Date();
@@ -126,11 +153,8 @@ const MainPage = ({
   const getDaysUntilBirthday = () => {
     const today = new Date();
     let nextBday = new Date(today.getFullYear(), 5, 20);
-    if (today > nextBday) {
-      nextBday.setFullYear(today.getFullYear() + 1);
-    }
-    const diffTime = Math.abs(nextBday - today);
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    if (today > nextBday) nextBday.setFullYear(today.getFullYear() + 1);
+    return Math.ceil(Math.abs(nextBday - today) / (1000 * 60 * 60 * 24));
   };
 
   const calculateYearProgress = () => {
@@ -168,6 +192,19 @@ const MainPage = ({
     },
   ];
 
+  const techStack = [
+    "JAVASCRIPT",
+    "REACT",
+    "LUA",
+    "NODE.JS",
+    "PYTHON",
+    "TAILWIND",
+    "FRAMER MOTION",
+    "DISCORD.JS",
+    "MONGODB",
+    "TYPESCRIPT",
+  ];
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -175,6 +212,24 @@ const MainPage = ({
       transition={{ duration: 1, ease: "easeOut" }}
       className="relative min-h-screen bg-[#08080c] overflow-hidden text-white font-sans selection:bg-white/10 cursor-none"
     >
+      {/* MARQUEE TECH STACK */}
+      <div className="fixed top-0 left-0 w-full overflow-hidden bg-white/[0.02] border-b border-white/5 py-2 z-[101] backdrop-blur-sm">
+        <motion.div
+          animate={{ x: [0, -1000] }}
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          className="flex whitespace-nowrap gap-12"
+        >
+          {[...techStack, ...techStack].map((tech, i) => (
+            <span
+              key={i}
+              className="text-[9px] font-black tracking-[0.4em] opacity-30"
+            >
+              {tech}
+            </span>
+          ))}
+        </motion.div>
+      </div>
+
       <div className="fixed top-12 right-12 z-[100] opacity-40 font-black text-4xl tracking-tighter uppercase italic select-none font-mono">
         zorq.page
       </div>
@@ -227,7 +282,7 @@ const MainPage = ({
               rotateY: cardRotateY,
               transformStyle: "preserve-3d",
             }}
-            className="lg:col-span-4 bg-[#0f0f11] border border-white/5 p-8 rounded-[2.5rem] shadow-2xl flex flex-col items-center"
+            className="lg:col-span-4 bg-[#0f0f11] border border-white/5 p-8 rounded-[2.5rem] shadow-2xl flex flex-col items-center relative z-20"
           >
             <div className="flex flex-col items-center w-full">
               <div className="relative mb-6">
@@ -327,12 +382,15 @@ const MainPage = ({
             </button>
           </motion.div>
 
-          <div className="lg:col-span-8 flex flex-col gap-4">
+          <div className="lg:col-span-8 flex flex-col gap-4 relative z-20">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
               {projects.map((p, i) => (
                 <div
                   key={i}
-                  className="bg-[#0f0f11] border border-white/5 p-6 rounded-[2rem] hover:bg-white/[0.02] transition-all flex flex-col justify-center"
+                  ref={(el) => (projectRefs.current[i] = el)}
+                  onMouseEnter={() => setHoveredProject(i)}
+                  onMouseLeave={() => setHoveredProject(null)}
+                  className="bg-[#0f0f11] border border-white/5 p-6 rounded-[2rem] hover:bg-white/[0.02] transition-all flex flex-col justify-center relative group"
                 >
                   <div style={{ color: activeColor }} className="mb-3">
                     {p.icon}
@@ -341,6 +399,20 @@ const MainPage = ({
                   <p className="text-[11px] text-white/30 leading-snug">
                     {p.desc}
                   </p>
+
+                  {/* DYNAMIC CONNECTION LINE */}
+                  {hoveredProject === i && (
+                    <motion.div
+                      layoutId="connection"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 0.15 }}
+                      className="absolute -left-12 top-1/2 w-12 h-[1px]"
+                      style={{
+                        backgroundColor: activeColor,
+                        boxShadow: `0 0 10px ${activeColor}`,
+                      }}
+                    />
+                  )}
                 </div>
               ))}
 
@@ -417,6 +489,25 @@ const MainPage = ({
         </div>
       </div>
 
+      {/* TERMINAL HISTORY FOOTER */}
+      <div className="fixed bottom-0 left-0 w-full z-[100] px-6 pb-4 flex justify-between items-end pointer-events-none">
+        <div className="flex flex-col gap-1">
+          <AnimatePresence mode="popLayout">
+            {logs.map((log) => (
+              <motion.p
+                key={log.id}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 0.4, x: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="font-mono text-[8px] uppercase tracking-widest flex items-center gap-2"
+              >
+                <span style={{ color: activeColor }}>&gt;</span> {log.text}
+              </motion.p>
+            ))}
+          </AnimatePresence>
+        </div>
+      </div>
+
       <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] px-10 py-4 bg-white/[0.03] border border-white/10 rounded-full backdrop-blur-xl shadow-2xl">
         <p className="text-2xl font-black tracking-[0.4em] text-white/80 font-mono italic">
           {time}
@@ -463,7 +554,6 @@ export default function App() {
     const handleMouse = (e) => {
       cursorX.set(e.clientX);
       cursorY.set(e.clientY);
-
       if (mainCardRef.current) {
         const rect = mainCardRef.current.getBoundingClientRect();
         const isNear =
