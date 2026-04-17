@@ -110,6 +110,25 @@ const MainPage = ({
   const isPlaying = !!lanyard.spotify || lanyard.listening_to_spotify;
   const customStatus = lanyard.activities?.find((a) => a.type === 4)?.state;
 
+  // Level Logic (Birthdate: June 20, 2008)
+  const calculateLevel = () => {
+    const birthDate = new Date(2008, 5, 20); // Months are 0-indexed
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  const calculateYearProgress = () => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), 0, 1);
+    const end = new Date(now.getFullYear() + 1, 0, 1);
+    return ((now - start) / (end - start)) * 100;
+  };
+
   const projects = [
     {
       name: "Discord Automation",
@@ -210,17 +229,17 @@ const MainPage = ({
                   style={{ backgroundColor: activeColor }}
                 />
 
-                {/* CHAT BUBBLE STATUS */}
+                {/* OVAL CHAT BUBBLE (NO EMOJI) */}
                 {customStatus && (
                   <motion.div
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="absolute left-full top-4 ml-4 px-4 py-2 bg-[#1a1a1d] border border-white/10 rounded-2xl rounded-bl-none shadow-2xl whitespace-nowrap z-50"
+                    className="absolute left-full top-4 ml-4 px-5 py-2.5 bg-[#1a1a1d] border border-white/10 rounded-full shadow-2xl whitespace-nowrap z-50"
                   >
-                    <p className="text-[11px] font-bold text-white/90 italic flex items-center gap-2">
-                      <span>✨</span> {customStatus}
+                    <p className="text-[11px] font-bold text-white/90 italic">
+                      {customStatus}
                     </p>
-                    <div className="absolute -left-2 bottom-0 w-4 h-4 bg-[#1a1a1d] border-l border-b border-white/10 rotate-45 -z-10" />
+                    <div className="absolute -left-1.5 top-1/2 -translate-y-1/2 w-3 h-3 bg-[#1a1a1d] border-l border-b border-white/10 rotate-45 -z-10" />
                   </motion.div>
                 )}
               </div>
@@ -232,14 +251,33 @@ const MainPage = ({
                 Full-Stack Architect
               </p>
 
+              {/* LEVEL & PROGRESS SYSTEM */}
               <div className="w-full space-y-3 text-left mb-auto">
-                <div className="bg-white/[0.03] border border-white/5 p-4 rounded-2xl w-full">
-                  <p className="text-[9px] opacity-60 font-black uppercase mb-1 font-sans">
-                    Clock
-                  </p>
-                  <p className="text-xs font-bold opacity-80 font-mono">
-                    {time}
-                  </p>
+                <div className="bg-white/[0.03] border border-white/5 p-5 rounded-2xl w-full">
+                  <div className="flex justify-between items-end mb-2">
+                    <p className="text-[9px] opacity-60 font-black uppercase">
+                      Current Level
+                    </p>
+                    <p className="text-2xl font-black tracking-tighter italic">
+                      {calculateLevel()}
+                    </p>
+                  </div>
+                  <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden relative">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${calculateYearProgress()}%` }}
+                      style={{ backgroundColor: activeColor }}
+                      className="h-full shadow-[0_0_10px_rgba(255,255,255,0.2)]"
+                    />
+                  </div>
+                  <div className="flex justify-between mt-2">
+                    <p className="text-[8px] opacity-40 font-bold uppercase tracking-widest">
+                      {calculateYearProgress().toFixed(1)}% EXP
+                    </p>
+                    <p className="text-[8px] opacity-40 font-bold uppercase tracking-widest">
+                      Next: LVL {calculateLevel() + 1}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -339,6 +377,13 @@ const MainPage = ({
             </div>
           </div>
         </div>
+      </div>
+
+      {/* CLOCK SHIFTED TO BOTTOM CENTER */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-2 bg-white/[0.02] border border-white/5 rounded-full backdrop-blur-md">
+        <p className="text-[10px] font-black tracking-[0.3em] opacity-50 font-mono italic">
+          {time}
+        </p>
       </div>
     </motion.div>
   );
