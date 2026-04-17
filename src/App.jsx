@@ -1,12 +1,5 @@
-import React, { useState, useEffect, useRef, Suspense } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, useSpring, useTransform } from "framer-motion";
-import { Canvas, useFrame } from "@react-three/fiber";
-import {
-  OrbitControls,
-  PerspectiveCamera,
-  MeshDistortMaterial,
-  Float,
-} from "@react-three/drei";
 import {
   ExternalLink,
   Globe,
@@ -18,48 +11,6 @@ import {
 } from "lucide-react";
 
 const DISCORD_ID = "900965149496737874";
-
-// --- RUBIK'S CUBE COMPONENT ---
-function RubiksCube() {
-  const meshRef = useRef();
-
-  // Slow constant rotation
-  useFrame((state) => {
-    if (meshRef.current) {
-      meshRef.current.rotation.x += 0.005;
-      meshRef.current.rotation.y += 0.005;
-    }
-  });
-
-  // Creating a 3x3 grid of smaller cubes
-  const cubes = [];
-  for (let x = -1; x <= 1; x++) {
-    for (let y = -1; y <= 1; y++) {
-      for (let z = -1; z <= 1; z++) {
-        cubes.push([x * 1.05, y * 1.05, z * 1.05]);
-      }
-    }
-  }
-
-  return (
-    <group ref={meshRef}>
-      {cubes.map((pos, i) => (
-        <mesh key={i} position={pos}>
-          <boxGeometry args={[0.9, 0.9, 0.9]} />
-          {/* iOS-style Glass Material for the Cube pieces */}
-          <meshPhysicalMaterial
-            color="#ffffff"
-            transmission={0.6}
-            thickness={0.5}
-            roughness={0.1}
-            envMapIntensity={2}
-            clearcoat={1}
-          />
-        </mesh>
-      ))}
-    </group>
-  );
-}
 
 const projects = [
   {
@@ -89,15 +40,19 @@ export default function App() {
   const [time, setTime] = useState(new Date().toLocaleTimeString());
   const cardRef = useRef(null);
 
-  const cursorX = useSpring(0, { stiffness: 600, damping: 25 });
-  const cursorY = useSpring(0, { stiffness: 600, damping: 25 });
-  const cardX = useSpring(0, { stiffness: 80, damping: 40 });
-  const cardY = useSpring(0, { stiffness: 80, damping: 40 });
+  // High-performance springs
+  const cursorX = useSpring(0, { stiffness: 400, damping: 30 });
+  const cursorY = useSpring(0, { stiffness: 400, damping: 30 });
+  const cardX = useSpring(0, { stiffness: 100, damping: 30 });
+  const cardY = useSpring(0, { stiffness: 100, damping: 30 });
 
-  const rotateX = useTransform(cardY, [-0.5, 0.5], [-15, 15]);
-  const rotateY = useTransform(cardX, [-0.5, 0.5], [15, -15]);
-  const bgTextX = useTransform(cursorX, [0, 2000], [20, -20]);
-  const bgTextY = useTransform(cursorY, [0, 2000], [20, -20]);
+  // Rotation for 3D effect
+  const rotateX = useTransform(cardY, [-0.5, 0.5], [-20, 20]);
+  const rotateY = useTransform(cardX, [-0.5, 0.5], [20, -20]);
+
+  // Background parallax
+  const bgTextX = useTransform(cursorX, [0, 1920], [30, -30]);
+  const bgTextY = useTransform(cursorY, [0, 1080], [30, -30]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -108,30 +63,28 @@ export default function App() {
         const json = await res.json();
         if (json.success) setLanyard(json.data);
       } catch (err) {
-        console.error("Lanyard Failed:", err);
+        console.error("Lanyard Failed");
       }
     };
     fetchData();
     const t = setInterval(() => setTime(new Date().toLocaleTimeString()), 1000);
-    const handleGlobalMouse = (e) => {
+    const handleMouse = (e) => {
       cursorX.set(e.clientX);
       cursorY.set(e.clientY);
       if (cardRef.current) {
         const rect = cardRef.current.getBoundingClientRect();
-        const relX = (e.clientX - rect.left) / rect.width - 0.5;
-        const relY = (e.clientY - rect.top) / rect.height - 0.5;
-        cardX.set(relX);
-        cardY.set(relY);
+        cardX.set((e.clientX - rect.left) / rect.width - 0.5);
+        cardY.set((e.clientY - rect.top) / rect.height - 0.5);
       }
     };
-    window.addEventListener("mousemove", handleGlobalMouse);
+    window.addEventListener("mousemove", handleMouse);
     return () => {
-      window.removeEventListener("mousemove", handleGlobalMouse);
+      window.removeEventListener("mousemove", handleMouse);
       clearInterval(t);
     };
   }, []);
 
-  if (!lanyard) return <div className="min-h-screen bg-[#08080c]" />;
+  if (!lanyard) return <div className="min-h-screen bg-[#050505]" />;
 
   const status = lanyard.discord_status;
   const statusColors = {
@@ -140,23 +93,41 @@ export default function App() {
     idle: "#f59e0b",
     offline: "#64748b",
   };
-  const activeStatusColor = statusColors[status] || statusColors.offline;
+  const activeColor = statusColors[status] || statusColors.offline;
 
   return (
-    <div className="relative min-h-screen bg-[#08080c] overflow-hidden">
-      {/* Background Glow */}
+    <div className="relative min-h-screen bg-[#050505] text-white selection:bg-white/10 overflow-hidden font-sans">
+      {/* 1. DYNAMIC BACKGROUND GLOW */}
       <motion.div
-        className="fixed top-0 left-0 w-[600px] h-[600px] rounded-full blur-[140px] opacity-[0.2] pointer-events-none z-0"
+        className="fixed top-0 left-0 w-[600px] h-[600px] rounded-full blur-[120px] opacity-[0.15] pointer-events-none z-0"
         style={{
           x: cursorX,
           y: cursorY,
           translateX: "-50%",
           translateY: "-50%",
-          backgroundColor: activeStatusColor,
+          backgroundColor: activeColor,
         }}
       />
 
-      {/* Parallax Background Text */}
+      {/* 2. FLOATING GLASS SHARDS (The 3D catchiness) */}
+      {[...Array(5)].map((_, i) => (
+        <motion.div
+          key={i}
+          animate={{ y: [0, -20, 0], rotate: [0, 5, 0] }}
+          transition={{ duration: 5 + i, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl pointer-events-none"
+          style={{
+            width: 100 + i * 20,
+            height: 100 + i * 20,
+            top: `${20 * i}%`,
+            left: `${15 * i}%`,
+            opacity: 0.1,
+            zIndex: 1,
+          }}
+        />
+      ))}
+
+      {/* 3. PARALLAX OUTLINE TEXT */}
       <motion.div
         style={{
           x: bgTextX,
@@ -164,17 +135,20 @@ export default function App() {
           translateX: "-50%",
           translateY: "-50%",
         }}
-        className="fixed top-1/2 left-1/2 z-0 pointer-events-none"
+        className="fixed top-1/2 left-1/2 z-0 opacity-20 pointer-events-none"
       >
         <h1
-          className="font-black text-zinc-900/50 select-none"
-          style={{ fontSize: "25vw" }}
+          className="font-black tracking-tighter select-none uppercase text-transparent"
+          style={{
+            fontSize: "20vw",
+            WebkitTextStroke: "2px rgba(255,255,255,0.2)",
+          }}
         >
           ZXRQI
         </h1>
       </motion.div>
 
-      {/* Solid Inverting Cursor */}
+      {/* 4. SOLID INVERTING CURSOR */}
       <motion.div
         className="fixed top-0 left-0 w-8 h-8 rounded-full pointer-events-none z-[9999] bg-red-600 mix-blend-difference"
         style={{
@@ -185,75 +159,121 @@ export default function App() {
         }}
       />
 
-      <div className="min-h-screen flex flex-col lg:flex-row items-center justify-center p-6 gap-12 z-10 relative">
-        {/* LEFT: Profile Card */}
-        <motion.div
-          ref={cardRef}
-          style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-          className="w-full max-w-[360px] bg-white/[0.03] border border-white/10 backdrop-blur-3xl p-8 rounded-[2.5rem] shadow-2xl"
-        >
-          <div className="relative mb-6">
-            <img
-              src={`https://cdn.discordapp.com/avatars/${lanyard.discord_user.id}/${lanyard.discord_user.avatar}.png?size=512`}
-              className="w-24 h-24 rounded-full border-2 border-white/10 mx-auto"
-            />
-            <div
-              className="absolute bottom-1 right-[38%] w-5 h-5 rounded-full border-4 border-[#08080c]"
-              style={{ backgroundColor: activeStatusColor }}
-            />
-          </div>
-          <h1 className="text-3xl font-black text-center uppercase tracking-tighter">
-            {lanyard.discord_user.global_name}
-          </h1>
-          <p
-            className="text-center font-mono text-[10px] tracking-widest mt-2 uppercase"
-            style={{ color: activeStatusColor }}
+      <div className="min-h-screen relative z-10 flex flex-col items-center justify-center p-6 gap-8">
+        <div className="flex flex-col lg:flex-row items-center gap-12 w-full max-w-6xl">
+          {/* THE 3D CARD */}
+          <motion.div
+            ref={cardRef}
+            style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+            className="w-full max-w-[380px] bg-white/[0.03] border border-white/10 backdrop-blur-3xl p-10 rounded-[3rem] shadow-[0_50px_100px_rgba(0,0,0,0.8)] relative group"
           >
-            System {status}
-          </p>
-          <div className="mt-8 space-y-3">
-            <div className="bg-white/5 p-4 rounded-2xl border border-white/5 text-xs">
-              <p className="opacity-30 uppercase font-black mb-1">Activity</p>
-              <p>
-                {lanyard.activities?.find((a) => a.type === 4)?.state || "Idle"}
+            {/* Inner Glare Effect */}
+            <div className="absolute inset-0 rounded-[3rem] bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+
+            <div
+              style={{ transform: "translateZ(100px)" }}
+              className="relative mb-8"
+            >
+              <img
+                src={`https://cdn.discordapp.com/avatars/${lanyard.discord_user.id}/${lanyard.discord_user.avatar}.png?size=512`}
+                className="w-28 h-28 rounded-full border-2 border-white/10 mx-auto shadow-2xl"
+              />
+              <div
+                className="absolute bottom-2 right-[35%] w-6 h-6 rounded-full border-4 border-[#050505] shadow-lg"
+                style={{ backgroundColor: activeColor }}
+              />
+            </div>
+
+            <div style={{ transform: "translateZ(60px)" }}>
+              <h1 className="text-4xl font-black text-center uppercase tracking-tighter italic leading-none">
+                {lanyard.discord_user.global_name}
+              </h1>
+              <p
+                className="text-center font-mono text-[10px] tracking-[0.5em] mt-3 uppercase font-bold"
+                style={{ color: activeColor }}
+              >
+                {status} Secure_Node
               </p>
             </div>
-          </div>
-        </motion.div>
 
-        {/* CENTER: Project Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
-          {projects.map((p, i) => (
             <div
-              key={i}
-              className="bg-white/[0.02] border border-white/5 p-6 rounded-3xl backdrop-blur-xl hover:bg-white/[0.05] transition-all"
+              style={{ transform: "translateZ(40px)" }}
+              className="mt-10 space-y-4"
             >
-              <div style={{ color: activeStatusColor }} className="mb-3">
-                {p.icon}
+              <div className="bg-white/5 p-4 rounded-2xl border border-white/5 flex justify-between items-center">
+                <span className="text-[10px] font-black uppercase opacity-30">
+                  Status
+                </span>
+                <span className="text-xs font-medium">
+                  {lanyard.activities?.find((a) => a.type === 4)?.state ||
+                    "Scanning..."}
+                </span>
               </div>
-              <h3 className="font-bold">{p.name}</h3>
-              <p className="text-[10px] opacity-40 mt-1">{p.desc}</p>
+              <div className="bg-white/5 p-4 rounded-2xl border border-white/5 flex justify-between items-center">
+                <span className="text-[10px] font-black uppercase opacity-30">
+                  Local Time
+                </span>
+                <span className="text-xs font-mono">{time}</span>
+              </div>
             </div>
-          ))}
-        </div>
 
-        {/* RIGHT (OPTION B): Interactive 3D Cube */}
-        <div className="w-[300px] h-[300px] lg:w-[400px] lg:h-[400px] relative cursor-grab active:cursor-grabbing">
-          <Canvas>
-            <PerspectiveCamera makeDefault position={[0, 0, 5]} />
-            <ambientLight intensity={0.5} />
-            <pointLight position={[10, 10, 10]} intensity={1} />
-            <spotLight position={[-10, 10, 10]} angle={0.15} penumbra={1} />
+            <button
+              style={{
+                transform: "translateZ(80px)",
+                backgroundColor: activeColor,
+              }}
+              className="w-full mt-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl hover:brightness-125 transition-all active:scale-95"
+            >
+              Contact Profile
+            </button>
+          </motion.div>
 
-            <Float speed={2} rotationIntensity={1} floatIntensity={1}>
-              <RubiksCube />
-            </Float>
-
-            <OrbitControls enableZoom={false} makeDefault />
-          </Canvas>
-          <p className="absolute bottom-0 w-full text-center text-[9px] font-mono opacity-20 uppercase tracking-[0.3em] pointer-events-none">
-            Interact to Rotate
-          </p>
+          {/* PROJECT TILES */}
+          <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+            {projects.map((p, i) => (
+              <div
+                key={i}
+                className="bg-white/[0.02] border border-white/5 p-8 rounded-3xl backdrop-blur-xl hover:bg-white/[0.06] transition-all group shadow-xl"
+              >
+                <div
+                  style={{ color: activeColor }}
+                  className="mb-4 transition-transform group-hover:scale-110"
+                >
+                  {p.icon}
+                </div>
+                <h3 className="font-bold text-lg">{p.name}</h3>
+                <p className="text-[11px] text-white/40 mt-2 leading-relaxed">
+                  {p.desc}
+                </p>
+              </div>
+            ))}
+            {/* Spotify-style Live Card */}
+            <div className="md:col-span-2 bg-white/[0.02] border border-white/5 p-6 rounded-3xl backdrop-blur-xl flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center animate-pulse">
+                  <Disc size={20} style={{ color: activeColor }} />
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase font-black opacity-30 tracking-widest">
+                    Signal Source
+                  </p>
+                  <p className="text-sm font-medium">
+                    {lanyard.spotify
+                      ? lanyard.spotify.song
+                      : "Ambient System Noise"}
+                  </p>
+                </div>
+              </div>
+              <div className="w-32 h-1 bg-white/5 rounded-full overflow-hidden">
+                <motion.div
+                  animate={{ x: ["-100%", "100%"] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                  className="w-full h-full"
+                  style={{ backgroundColor: activeColor }}
+                />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
