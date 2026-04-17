@@ -64,7 +64,11 @@ const EntryScreen = ({ onEnter, activeColor }) => {
       >
         <div className="flex items-center justify-center gap-3 mb-6">
           <div className="h-[1px] w-12 bg-gradient-to-r from-transparent to-white/20" />
-          <Eye size={16} className="text-white/40" />
+          <Eye
+            size={16}
+            style={{ color: activeColor }}
+            className="opacity-60"
+          />
           <div className="h-[1px] w-12 bg-gradient-to-l from-transparent to-white/20" />
         </div>
 
@@ -79,6 +83,7 @@ const EntryScreen = ({ onEnter, activeColor }) => {
         <motion.div
           whileHover={{ scale: 1.05 }}
           className="group relative px-10 py-5 rounded-full border border-white/5 bg-white/[0.02] backdrop-blur-md overflow-hidden transition-all shadow-2xl"
+          style={{ boxShadow: `0 0 40px ${activeColor}15` }}
         >
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
           <span className="relative text-[12px] font-black uppercase tracking-[0.4em] text-white/60 group-hover:text-white transition-colors">
@@ -89,7 +94,7 @@ const EntryScreen = ({ onEnter, activeColor }) => {
 
       <div className="absolute bottom-10 left-10 flex items-center gap-4 opacity-20 font-mono text-[8px]">
         <Cpu size={14} />
-        <span>GUEST_SESSION // ACTIVE</span>
+        <span className="uppercase">SESSION_STABILIZED // {activeColor}</span>
       </div>
     </motion.div>
   );
@@ -109,7 +114,8 @@ const MainPage = ({
   status,
   cardRef,
 }) => {
-  const isPlaying = !!lanyard.spotify;
+  // Robust check for Spotify activity
+  const isPlaying = !!lanyard.spotify || lanyard.listening_to_spotify;
 
   const projects = [
     {
@@ -270,7 +276,7 @@ const MainPage = ({
                     }}
                     className="w-full h-full rounded-full bg-zinc-900 border-[3px] border-zinc-800 flex items-center justify-center shadow-lg overflow-hidden"
                   >
-                    {isPlaying ? (
+                    {isPlaying && lanyard.spotify ? (
                       <img
                         src={lanyard.spotify.album_art_url}
                         className="w-full h-full object-cover opacity-60"
@@ -282,14 +288,16 @@ const MainPage = ({
                   </motion.div>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[12px] font-black uppercase tracking-widest text-green-500 mb-1 flex items-center gap-1">
+                  <p className="text-[14px] font-black uppercase tracking-widest text-green-500 mb-1 flex items-center gap-1">
                     <div
                       className={`w-1.5 h-1.5 rounded-full ${isPlaying ? "bg-green-500 animate-pulse" : "bg-white/10"}`}
                     />
                     {isPlaying ? "Spotify" : "Offline"}
                   </p>
                   <h3 className="text-xs font-bold truncate text-white/90">
-                    {isPlaying ? lanyard.spotify.song : "Awaiting Signal..."}
+                    {isPlaying && lanyard.spotify
+                      ? lanyard.spotify.song
+                      : "Awaiting Signal..."}
                   </h3>
                   <div className="mt-3 h-0.5 w-full bg-white/5 rounded-full overflow-hidden">
                     <motion.div
@@ -361,7 +369,7 @@ export default function App() {
       }
     };
     fetchData();
-    const dInt = setInterval(fetchData, 30000);
+    const dInt = setInterval(fetchData, 10000); // Increased frequency to catch Spotify faster
     const tInt = setInterval(
       () => setTime(new Date().toLocaleTimeString()),
       1000,
@@ -371,7 +379,6 @@ export default function App() {
       cursorX.set(e.clientX);
       cursorY.set(e.clientY);
 
-      // Fixed Tilt Logic using the ref passed to MainPage
       if (mainCardRef.current) {
         const rect = mainCardRef.current.getBoundingClientRect();
         const isNear =
