@@ -38,7 +38,6 @@ const EntryScreen = ({ onEnter, activeColor, cursorX, cursorY }) => {
       />
       <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] brightness-100 pointer-events-none" />
 
-      {/* INVERTING CURSOR */}
       <motion.div
         className="fixed top-0 left-0 w-8 h-8 rounded-full pointer-events-none z-[10001] mix-blend-difference shadow-[0_0_20px_rgba(255,255,255,0.3)]"
         style={{
@@ -109,6 +108,7 @@ const MainPage = ({
   cardRef,
 }) => {
   const isPlaying = !!lanyard.spotify || lanyard.listening_to_spotify;
+  const customStatus = lanyard.activities?.find((a) => a.type === 4)?.state;
 
   const projects = [
     {
@@ -145,7 +145,6 @@ const MainPage = ({
       transition={{ duration: 1, ease: "easeOut" }}
       className="relative min-h-screen bg-[#08080c] overflow-hidden text-white font-sans selection:bg-white/10 cursor-none"
     >
-      {/* UPDATED: URL BRANDING TOP RIGHT (BOLDER & BIGGER) */}
       <div className="fixed top-12 right-12 z-[100] opacity-30 font-black text-xl tracking-[0.3em] uppercase italic select-none font-mono">
         zorq.page
       </div>
@@ -178,7 +177,6 @@ const MainPage = ({
         </h1>
       </motion.div>
 
-      {/* INVERTING CURSOR */}
       <motion.div
         className="fixed top-0 left-0 w-8 h-8 rounded-full pointer-events-none z-[9999] mix-blend-difference shadow-[0_0_20px_rgba(255,255,255,0.3)]"
         style={{
@@ -203,7 +201,6 @@ const MainPage = ({
           >
             <div className="flex flex-col items-center w-full">
               <div className="relative mb-6">
-                {/* BIG PFP */}
                 <img
                   src={`https://cdn.discordapp.com/avatars/${lanyard.discord_user.id}/${lanyard.discord_user.avatar}.png?size=512`}
                   className="w-32 h-32 rounded-full border-4 border-zinc-800 object-cover shadow-2xl"
@@ -212,7 +209,22 @@ const MainPage = ({
                   className="absolute bottom-2 right-2 w-6 h-6 rounded-full border-4 border-[#0f0f11]"
                   style={{ backgroundColor: activeColor }}
                 />
+
+                {/* CHAT BUBBLE STATUS */}
+                {customStatus && (
+                  <motion.div
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="absolute left-full top-4 ml-4 px-4 py-2 bg-[#1a1a1d] border border-white/10 rounded-2xl rounded-bl-none shadow-2xl whitespace-nowrap z-50"
+                  >
+                    <p className="text-[11px] font-bold text-white/90 italic flex items-center gap-2">
+                      <span>✨</span> {customStatus}
+                    </p>
+                    <div className="absolute -left-2 bottom-0 w-4 h-4 bg-[#1a1a1d] border-l border-b border-white/10 rotate-45 -z-10" />
+                  </motion.div>
+                )}
               </div>
+
               <h1 className="text-3xl font-black tracking-tighter mb-1 uppercase">
                 Zorq
               </h1>
@@ -221,15 +233,6 @@ const MainPage = ({
               </p>
 
               <div className="w-full space-y-3 text-left mb-auto">
-                <div className="bg-white/[0.03] border border-white/5 p-4 rounded-2xl w-full">
-                  <p className="text-[9px] opacity-60 font-black uppercase mb-1">
-                    Process
-                  </p>
-                  <p className="text-xs font-bold truncate">
-                    {lanyard.activities?.find((a) => a.type === 4)?.state ||
-                      "Zzzzz"}
-                  </p>
-                </div>
                 <div className="bg-white/[0.03] border border-white/5 p-4 rounded-2xl w-full">
                   <p className="text-[9px] opacity-60 font-black uppercase mb-1 font-sans">
                     Clock
