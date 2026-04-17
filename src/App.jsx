@@ -16,9 +16,142 @@ import {
   Cpu,
   Terminal,
   Eye,
+  Command,
+  Search,
+  Activity,
 } from "lucide-react";
 
 const DISCORD_ID = "900965149496737874";
+
+// --- COOL SMD COMMAND PALETTE ---
+const CommandPalette = ({ isOpen, onClose, activeColor }) => {
+  const [input, setInput] = useState("");
+  const [history, setHistory] = useState([
+    "> SYSTEM_READY",
+    "> ENCRYPTION_ACTIVE",
+  ]);
+
+  const handleCommand = (e) => {
+    if (e.key === "Enter") {
+      const cmd = input.toLowerCase().trim();
+      let response = "";
+      if (cmd === "help") response = "AVAIL: DISCORD, CLEAR, EXIT";
+      else if (cmd === "discord") {
+        window.open(`https://discord.com/users/${DISCORD_ID}`);
+        response = "LINKING_EXTERNAL...";
+      } else if (cmd === "clear") {
+        setHistory(["> CACHE_CLEARED"]);
+        setInput("");
+        return;
+      } else if (cmd === "exit") {
+        onClose();
+        return;
+      } else response = `ERR: ${cmd.toUpperCase()}_NOT_FOUND`;
+
+      setHistory((prev) => [
+        ...prev.slice(-3),
+        `> ${cmd.toUpperCase()}`,
+        response,
+      ]);
+      setInput("");
+    }
+  };
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[20000] flex items-center justify-center backdrop-blur-sm bg-black/40 cursor-default"
+          onClick={onClose}
+        >
+          {/* SMD SCREEN DESIGN */}
+          <motion.div
+            initial={{ scale: 0.8, rotateX: 20 }}
+            animate={{ scale: 1, rotateX: 0 }}
+            exit={{ scale: 0.8, opacity: 0 }}
+            className="w-full max-w-[400px] bg-[#050505] border-[4px] border-[#1a1a1a] rounded-sm p-1 shadow-[0_0_50px_rgba(0,0,0,1)] relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* SCREEN GLASS EFFECT */}
+            <div className="bg-[#0a0f0a] border border-[#222] p-4 rounded-sm relative overflow-hidden">
+              <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.03),rgba(0,255,0,0.01),rgba(0,0,255,0.03))] z-10 pointer-events-none bg-[length:100%_3px,3px_100%]" />
+
+              <div className="flex items-center justify-between mb-4 border-b border-green-900/30 pb-2">
+                <div className="flex items-center gap-2">
+                  <Activity
+                    size={12}
+                    className="text-green-500 animate-pulse"
+                  />
+                  <span className="text-[9px] font-mono text-green-500/50 uppercase tracking-tighter text-xs">
+                    SMD_PROMPT_V2.1
+                  </span>
+                </div>
+                <div className="w-2 h-2 rounded-full bg-red-600 animate-ping" />
+              </div>
+
+              <div className="h-24 font-mono text-[10px] text-green-500/80 mb-4 overflow-hidden flex flex-col justify-end">
+                {history.map((line, i) => (
+                  <div key={i} className="leading-tight">
+                    {line}
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-2 bg-black/50 p-2 border border-green-900/20">
+                <span className="text-green-500 text-xs font-mono">$</span>
+                <input
+                  autoFocus
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleCommand}
+                  className="bg-transparent border-none outline-none text-green-400 font-mono text-xs w-full caret-green-500"
+                />
+              </div>
+            </div>
+            {/* HARDWARE MOUNTING DETAIL */}
+            <div className="absolute -top-2 left-1/2 -translate-x-1/2 flex gap-10">
+              <div className="w-1 h-1 bg-zinc-700 rounded-full" />
+              <div className="w-1 h-1 bg-zinc-700 rounded-full" />
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
+// --- GLITCH TEXT COMPONENT ---
+const GlitchText = ({ text, isHovered }) => {
+  const [displayText, setDisplayText] = useState(text);
+  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ#%&@$";
+
+  useEffect(() => {
+    if (!isHovered) {
+      setDisplayText(text);
+      return;
+    }
+    let iterations = 0;
+    const interval = setInterval(() => {
+      setDisplayText((prev) =>
+        prev
+          .split("")
+          .map((_, index) => {
+            if (index < iterations) return text[index];
+            return characters[Math.floor(Math.random() * characters.length)];
+          })
+          .join(""),
+      );
+      if (iterations >= text.length) clearInterval(interval);
+      iterations += 1 / 3;
+    }, 30);
+    return () => clearInterval(interval);
+  }, [isHovered, text]);
+
+  return <span>{displayText}</span>;
+};
 
 // --- AESTHETIC ENTRY SCREEN ---
 const EntryScreen = ({ onEnter, activeColor, cursorX, cursorY }) => {
@@ -37,7 +170,6 @@ const EntryScreen = ({ onEnter, activeColor, cursorX, cursorY }) => {
         }}
       />
       <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] brightness-100 pointer-events-none" />
-
       <motion.div
         className="fixed top-0 left-0 w-8 h-8 rounded-full pointer-events-none z-[10001] mix-blend-difference shadow-[0_0_20px_rgba(255,255,255,0.3)]"
         style={{
@@ -48,7 +180,6 @@ const EntryScreen = ({ onEnter, activeColor, cursorX, cursorY }) => {
           backgroundColor: activeColor,
         }}
       />
-
       <motion.div
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -64,15 +195,12 @@ const EntryScreen = ({ onEnter, activeColor, cursorX, cursorY }) => {
           />
           <div className="h-[1px] w-12 bg-gradient-to-l from-transparent to-white/20" />
         </div>
-
         <h1 className="text-5xl md:text-7xl font-black italic tracking-tighter text-white mb-2 selection:bg-none">
           WELCOME, <span style={{ color: activeColor }}>VISITOR.</span>
         </h1>
-
         <p className="font-mono text-[10px] tracking-[0.5em] uppercase text-white/30 mb-12">
           Establishing secure handshake <span className="animate-pulse">_</span>
         </p>
-
         <motion.div
           whileHover={{ scale: 1.05 }}
           className="group relative px-10 py-5 rounded-full border border-white/5 bg-white/[0.02] backdrop-blur-md overflow-hidden transition-all shadow-2xl"
@@ -84,7 +212,6 @@ const EntryScreen = ({ onEnter, activeColor, cursorX, cursorY }) => {
           </span>
         </motion.div>
       </motion.div>
-
       <div className="absolute bottom-10 left-10 flex items-center gap-4 opacity-20 font-mono text-[8px]">
         <Cpu size={14} />
         <span className="uppercase">SESSION_STABILIZED // {activeColor}</span>
@@ -110,24 +237,30 @@ const MainPage = ({
   const isPlaying = !!lanyard.spotify || lanyard.listening_to_spotify;
   const customStatus = lanyard.activities?.find((a) => a.type === 4)?.state;
   const [isLevelHovered, setIsLevelHovered] = useState(false);
-  const [hoveredProject, setHoveredProject] = useState(null);
+  const [hoveredIndex, setHoveredIndex] = useState(null);
+  const [isPaletteOpen, setIsPaletteOpen] = useState(false);
   const [logs, setLogs] = useState([]);
 
-  const statusDotRef = useRef(null);
-  const projectRefs = useRef([]);
-
-  // Terminal Logging Logic
   useEffect(() => {
-    const addLog = (msg) => {
-      setLogs((prev) => [...prev.slice(-8), { id: Date.now(), text: msg }]);
+    const handleKeyDown = (e) => {
+      if (e.key === "`") {
+        e.preventDefault();
+        setIsPaletteOpen((prev) => !prev);
+      }
+      if (e.key === "Escape") setIsPaletteOpen(false);
     };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
+  useEffect(() => {
+    const addLog = (msg) =>
+      setLogs((prev) => [...prev.slice(-8), { id: Date.now(), text: msg }]);
     if (isPlaying)
       addLog(`STREAM_SYNC: Receiving audio packets from Spotify...`);
     addLog(
       `SIGNAL_STATUS: Node set to INDIA // Status: ${status.toUpperCase()}`,
     );
-
     const interval = setInterval(() => {
       const phrases = [
         "Kernel stabilized",
@@ -135,10 +268,11 @@ const MainPage = ({
         "Handshake active",
         "Encrypted link maintained",
         "Latency stabilized at 0.002ms",
+        "Neural nodes responding",
+        "Asset cache refreshed",
       ];
       addLog(`SYSTEM: ${phrases[Math.floor(Math.random() * phrases.length)]}`);
-    }, 6000);
-
+    }, 5000);
     return () => clearInterval(interval);
   }, [isPlaying, status]);
 
@@ -147,9 +281,7 @@ const MainPage = ({
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
     const m = today.getMonth() - birthDate.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
     return age;
   };
 
@@ -202,31 +334,15 @@ const MainPage = ({
       transition={{ duration: 1, ease: "easeOut" }}
       className="relative min-h-screen bg-[#08080c] overflow-hidden text-white font-sans selection:bg-white/10 cursor-none"
     >
-      {/* CONNECTION LINES LAYER */}
-      <svg className="fixed inset-0 w-full h-full pointer-events-none z-[5] overflow-visible">
-        <AnimatePresence>
-          {hoveredProject !== null &&
-            statusDotRef.current &&
-            projectRefs.current[hoveredProject] && (
-              <motion.path
-                initial={{ pathLength: 0, opacity: 0 }}
-                animate={{ pathLength: 1, opacity: 0.2 }}
-                exit={{ opacity: 0 }}
-                d={`M ${statusDotRef.current.getBoundingClientRect().left + 12} ${statusDotRef.current.getBoundingClientRect().top + 12}
-                 L ${projectRefs.current[hoveredProject].getBoundingClientRect().left} ${projectRefs.current[hoveredProject].getBoundingClientRect().top + 40}`}
-                stroke={activeColor}
-                strokeWidth="1"
-                fill="none"
-                strokeDasharray="5,5"
-              />
-            )}
-        </AnimatePresence>
-      </svg>
+      <CommandPalette
+        isOpen={isPaletteOpen}
+        onClose={() => setIsPaletteOpen(false)}
+        activeColor={activeColor}
+      />
 
       <div className="fixed top-12 right-12 z-[100] opacity-40 font-black text-4xl tracking-tighter uppercase italic select-none font-mono">
         zorq.page
       </div>
-
       <motion.div
         className="fixed top-0 left-0 w-[400px] h-[400px] rounded-full blur-[100px] opacity-[0.15] pointer-events-none z-0"
         style={{
@@ -237,7 +353,6 @@ const MainPage = ({
           backgroundColor: activeColor,
         }}
       />
-
       <motion.div
         style={{
           x: bgTextX,
@@ -254,7 +369,6 @@ const MainPage = ({
           ZORQ
         </h1>
       </motion.div>
-
       <motion.div
         className="fixed top-0 left-0 w-8 h-8 rounded-full pointer-events-none z-[9999] mix-blend-difference shadow-[0_0_20px_rgba(255,255,255,0.3)]"
         style={{
@@ -283,9 +397,7 @@ const MainPage = ({
                   src={`https://cdn.discordapp.com/avatars/${lanyard.discord_user.id}/${lanyard.discord_user.avatar}.png?size=512`}
                   className="w-32 h-32 rounded-full border-4 border-zinc-800 object-cover shadow-2xl"
                 />
-
                 <motion.div
-                  ref={statusDotRef}
                   animate={{
                     filter: [
                       "brightness(1.5) drop-shadow(0 0 8px currentColor)",
@@ -301,7 +413,6 @@ const MainPage = ({
                   className="absolute bottom-2 right-2 w-6 h-6 rounded-full border-4 border-[#0f0f11]"
                   style={{ backgroundColor: activeColor, color: activeColor }}
                 />
-
                 {customStatus && (
                   <motion.div
                     initial={{ opacity: 0, x: -10 }}
@@ -315,14 +426,12 @@ const MainPage = ({
                   </motion.div>
                 )}
               </div>
-
               <h1 className="text-3xl font-black tracking-tighter mb-1 uppercase">
                 Zorq
               </h1>
               <p className="text-[9px] font-black uppercase tracking-[0.2em] text-green-500/80 mb-8">
                 Full-Stack Architect
               </p>
-
               <div className="w-full space-y-3 text-left mb-auto">
                 <motion.div
                   onMouseEnter={() => setIsLevelHovered(true)}
@@ -381,21 +490,24 @@ const MainPage = ({
               {projects.map((p, i) => (
                 <div
                   key={i}
-                  ref={(el) => (projectRefs.current[i] = el)}
-                  onMouseEnter={() => setHoveredProject(i)}
-                  onMouseLeave={() => setHoveredProject(null)}
+                  onMouseEnter={() => setHoveredIndex(i)}
+                  onMouseLeave={() => setHoveredIndex(null)}
                   className="bg-[#0f0f11] border border-white/5 p-6 rounded-[2rem] hover:bg-white/[0.02] transition-all flex flex-col justify-center relative group"
                 >
-                  <div style={{ color: activeColor }} className="mb-3">
+                  <div
+                    style={{ color: activeColor }}
+                    className="mb-3 transition-transform group-hover:scale-110 group-hover:rotate-6"
+                  >
                     {p.icon}
                   </div>
-                  <h3 className="text-lg font-bold mb-1">{p.name}</h3>
+                  <h3 className="text-lg font-bold mb-1">
+                    <GlitchText text={p.name} isHovered={hoveredIndex === i} />
+                  </h3>
                   <p className="text-[11px] text-white/30 leading-snug">
                     {p.desc}
                   </p>
                 </div>
               ))}
-
               <div className="bg-[#0f0f11] border border-white/10 rounded-[2rem] p-5 flex items-center gap-4 relative overflow-hidden group">
                 <div className="relative w-14 h-14 flex-shrink-0">
                   <motion.div
@@ -439,7 +551,6 @@ const MainPage = ({
                 </div>
               </div>
             </div>
-
             <div className="grid grid-cols-3 gap-3">
               <div className="bg-[#0f0f11] border border-white/5 p-3 rounded-xl text-center">
                 <p className="text-[8px] opacity-60 font-black uppercase mb-0.5">
@@ -469,34 +580,42 @@ const MainPage = ({
         </div>
       </div>
 
-      {/* TERMINAL HISTORY FOOTER - BIGGER & MORE VISIBLE */}
       <div className="fixed bottom-0 left-0 w-full z-[100] px-8 pb-8 flex justify-between items-end pointer-events-none">
-        <div className="flex flex-col gap-2 max-w-md">
+        <div className="flex flex-col gap-2 max-w-lg">
           <div className="flex items-center gap-2 mb-2 opacity-30">
             <Terminal size={12} />
             <span className="text-[9px] font-black uppercase tracking-widest">
-              Live System Logs
+              Mainframe_Live_Log
             </span>
           </div>
           <AnimatePresence mode="popLayout">
             {logs.map((log) => (
               <motion.p
                 key={log.id}
-                initial={{ opacity: 0, x: -15 }}
+                initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 0.5, x: 0 }}
-                exit={{ opacity: 0, y: -15 }}
-                className="font-mono text-[10px] uppercase tracking-widest flex items-center gap-3"
+                exit={{ opacity: 0, y: -20 }}
+                className="font-mono text-[11px] uppercase tracking-widest flex items-center gap-3"
               >
-                <span style={{ color: activeColor }} className="font-bold">
+                <span
+                  style={{ color: activeColor }}
+                  className="font-bold shrink-0"
+                >
                   &gt;&gt;
-                </span>{" "}
-                {log.text}
+                </span>
+                <span className="truncate">{log.text}</span>
               </motion.p>
             ))}
           </AnimatePresence>
         </div>
+        {/* INSTRUCTIONAL TEXT UPDATE */}
+        <div className="pointer-events-auto group flex items-center gap-3 px-4 py-2 bg-white/[0.02] border border-white/10 rounded-full opacity-40 hover:opacity-100 transition-opacity">
+          <Terminal size={14} />
+          <span className="text-[9px] font-bold uppercase tracking-[0.2em]">
+            Press ` to open command prompt
+          </span>
+        </div>
       </div>
-
       <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] px-10 py-4 bg-white/[0.03] border border-white/10 rounded-full backdrop-blur-xl shadow-2xl">
         <p className="text-2xl font-black tracking-[0.4em] text-white/80 font-mono italic">
           {time}
@@ -512,12 +631,10 @@ export default function App() {
   const [lanyard, setLanyard] = useState(null);
   const [time, setTime] = useState(new Date().toLocaleTimeString());
   const mainCardRef = useRef(null);
-
   const cursorX = useSpring(0, { stiffness: 600, damping: 25 });
   const cursorY = useSpring(0, { stiffness: 600, damping: 25 });
   const cardRotateX = useSpring(0, { stiffness: 100, damping: 30 });
   const cardRotateY = useSpring(0, { stiffness: 100, damping: 30 });
-
   const bgTextX = useTransform(cursorX, [0, 2000], [20, -20]);
   const bgTextY = useTransform(cursorY, [0, 1000], [20, -20]);
 
@@ -539,7 +656,6 @@ export default function App() {
       () => setTime(new Date().toLocaleTimeString()),
       1000,
     );
-
     const handleMouse = (e) => {
       cursorX.set(e.clientX);
       cursorY.set(e.clientY);
@@ -568,7 +684,6 @@ export default function App() {
   }, [cursorX, cursorY, cardRotateX, cardRotateY]);
 
   if (!lanyard) return <div className="min-h-screen bg-[#08080c]" />;
-
   const status = lanyard.discord_status;
   const statusColors = {
     online: "#22c55e",
