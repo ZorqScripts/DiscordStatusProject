@@ -145,9 +145,9 @@ const MainPage = ({
       transition={{ duration: 1, ease: "easeOut" }}
       className="relative min-h-screen bg-[#08080c] overflow-hidden text-white font-sans selection:bg-white/10 cursor-none"
     >
-      {/* URL BRANDING TOP RIGHT */}
-      <div className="fixed top-10 right-10 z-[100] opacity-40 font-mono text-[10px] tracking-[0.6em] uppercase italic select-none">
-        zxrqi.online
+      {/* UPDATED: URL BRANDING TOP RIGHT (BOLDER & BIGGER) */}
+      <div className="fixed top-12 right-12 z-[100] opacity-30 font-black text-xl tracking-[0.3em] uppercase italic select-none font-mono">
+        zorq.page
       </div>
 
       <motion.div
@@ -203,7 +203,7 @@ const MainPage = ({
           >
             <div className="flex flex-col items-center w-full">
               <div className="relative mb-6">
-                {/* BIGGER PFP */}
+                {/* BIG PFP */}
                 <img
                   src={`https://cdn.discordapp.com/avatars/${lanyard.discord_user.id}/${lanyard.discord_user.avatar}.png?size=512`}
                   className="w-32 h-32 rounded-full border-4 border-zinc-800 object-cover shadow-2xl"
