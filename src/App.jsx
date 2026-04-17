@@ -45,14 +45,20 @@ export default function App() {
   const [time, setTime] = useState(new Date().toLocaleTimeString());
   const cardRef = useRef(null);
 
-  const cursorX = useSpring(0, { stiffness: 500, damping: 28 });
-  const cursorY = useSpring(0, { stiffness: 500, damping: 28 });
+  // Fast Cursor for Responsiveness
+  const cursorX = useSpring(0, { stiffness: 600, damping: 25 });
+  const cursorY = useSpring(0, { stiffness: 600, damping: 25 });
 
+  // Tilt Settings
   const cardX = useSpring(0, { stiffness: 80, damping: 40 });
   const cardY = useSpring(0, { stiffness: 80, damping: 40 });
 
   const rotateX = useTransform(cardY, [-0.5, 0.5], [-15, 15]);
   const rotateY = useTransform(cardX, [-0.5, 0.5], [15, -15]);
+
+  // BACKGROUND PARALLAX: Text subtlely moves inverted to the cursor
+  const bgTextX = useTransform(cursorX, [0, window.innerWidth], [20, -20]);
+  const bgTextY = useTransform(cursorY, [0, window.innerHeight], [20, -20]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -109,28 +115,27 @@ export default function App() {
 
   if (!lanyard)
     return (
-      <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
-        <div className="text-white font-mono animate-pulse italic uppercase tracking-widest text-xs">
-          syncing_status...
+      <div className="min-h-screen bg-[#08080c] flex items-center justify-center">
+        <div className="text-white/30 font-mono animate-pulse uppercase tracking-[0.4em] text-[10px]">
+          initializing_core...
         </div>
       </div>
     );
 
-  // LOGIC FOR DYNAMIC STATUS GLOW
   const status = lanyard.discord_status;
   const statusColors = {
-    online: "#22c55e", // Green
-    dnd: "#ef4444", // Red
-    idle: "#f59e0b", // Yellow
-    offline: "#64748b", // Grey
+    online: "#22c55e",
+    dnd: "#ef4444",
+    idle: "#f59e0b",
+    offline: "#64748b",
   };
   const activeStatusColor = statusColors[status] || statusColors.offline;
 
   return (
-    <div className="relative min-h-screen bg-[#0a0f1e] overflow-hidden selection:bg-white/20">
-      {/* DYNAMIC GLOW: Changes color based on status */}
+    <div className="relative min-h-screen bg-[#08080c] overflow-hidden selection:bg-white/10">
+      {/* 1. Moving Glow Orb (Behind Glass, Behind Text) */}
       <motion.div
-        className="fixed top-0 left-0 w-[600px] h-[600px] rounded-full blur-[140px] opacity-[0.25] pointer-events-none z-0"
+        className="fixed top-0 left-0 w-[550px] h-[550px] rounded-full blur-[130px] opacity-[0.22] pointer-events-none z-0"
         style={{
           x: cursorX,
           y: cursorY,
@@ -140,9 +145,27 @@ export default function App() {
         }}
       />
 
-      {/* INVERTING RED CURSOR: High visibility, flips underlying colors */}
+      {/* 2. RESPONSIVE BACKGROUND TITLE: Big, Bold, Parallax Text */}
       <motion.div
-        className="fixed top-0 left-0 w-8 h-8 rounded-full pointer-events-none z-[9999] mix-blend-difference border-[3px] border-red-600 bg-red-600/10"
+        style={{
+          x: bgTextX,
+          y: bgTextY,
+          translateX: "-50%",
+          translateY: "-50%",
+        }}
+        className="fixed top-1/2 left-1/2 z-1 pointer-events-none"
+      >
+        <h1
+          className="font-sans font-black tracking-[-0.08em] text-zinc-900 leading-none"
+          style={{ fontSize: "28vw" }}
+        >
+          ZXRQI
+        </h1>
+      </motion.div>
+
+      {/* 3. SOLID RED INVERTING CURSOR */}
+      <motion.div
+        className="fixed top-0 left-0 w-8 h-8 rounded-full pointer-events-none z-[9999] bg-red-600 mix-blend-difference"
         style={{
           x: cursorX,
           y: cursorY,
@@ -151,14 +174,15 @@ export default function App() {
         }}
       />
 
+      {/* Main Content Layer */}
       <div className="min-h-screen text-white/90 font-sans flex items-center justify-center p-4 lg:p-12 z-10 relative">
         <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Main Card with Glassmorphism */}
+          {/* Main Card */}
           <div className="lg:col-span-4 flex justify-center">
             <motion.div
               ref={cardRef}
               style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-              className="w-full max-w-[360px] bg-white/[0.03] border border-white/10 backdrop-blur-[30px] p-8 rounded-[2.5rem] text-center shadow-[0_30px_100px_rgba(0,0,0,0.5)]"
+              className="w-full max-w-[360px] bg-white/[0.03] border border-white/10 backdrop-blur-[35px] p-8 rounded-[2.5rem] text-center shadow-[0_30px_100px_rgba(0,0,0,0.6)]"
             >
               <div
                 className="relative inline-block mb-6"
@@ -170,7 +194,7 @@ export default function App() {
                   alt="avatar"
                 />
                 <div
-                  className="absolute bottom-2 right-2 w-6 h-6 rounded-full border-2 border-[#0a0f1e] z-30 shadow-lg"
+                  className="absolute bottom-2 right-2 w-6 h-6 rounded-full border-2 border-[#08080c] z-30 shadow-lg"
                   style={{ backgroundColor: activeStatusColor }}
                 ></div>
               </div>
@@ -188,7 +212,7 @@ export default function App() {
                 }}
                 className="font-mono text-[9px] tracking-[0.4em] mb-8 uppercase font-bold"
               >
-                {status} Protocol Active
+                {status} Node Active
               </p>
 
               <div
@@ -202,7 +226,7 @@ export default function App() {
                     "Scanning..."
                   }
                 />
-                <ActivityRow label="Time" value={time} />
+                <ActivityRow label="System Time" value={time} />
               </div>
 
               <button
@@ -213,7 +237,7 @@ export default function App() {
                   backgroundColor: activeStatusColor,
                   transform: "translateZ(60px)",
                 }}
-                className="w-full py-4 rounded-2xl text-[10px] font-black tracking-[0.2em] uppercase flex items-center justify-center gap-2 hover:brightness-110 active:scale-95 transition-all shadow-xl"
+                className="w-full py-4 rounded-2xl text-[10px] font-black tracking-[0.2em] uppercase flex items-center justify-center gap-2 hover:brightness-110 active:scale-95 transition-all shadow-xl text-white"
               >
                 Access Profile <ExternalLink size={14} />
               </button>
@@ -221,7 +245,7 @@ export default function App() {
           </div>
 
           {/* Info Panels */}
-          <div className="lg:col-span-8 flex flex-col gap-6">
+          <div className="lg:col-span-8 flex flex-col gap-6 relative">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {projects.map((proj, i) => (
                 <div
@@ -229,7 +253,7 @@ export default function App() {
                   className="bg-white/[0.02] border border-white/5 p-6 rounded-3xl backdrop-blur-md hover:bg-white/[0.05] transition-all shadow-xl group"
                 >
                   <div
-                    className="mb-4 transition-colors group-hover:text-white"
+                    className="mb-4 group-hover:text-white"
                     style={{ color: activeStatusColor }}
                   >
                     {proj.icon}
@@ -250,15 +274,15 @@ export default function App() {
                       className={lanyard.spotify ? "animate-spin-slow" : ""}
                       size={14}
                     />{" "}
-                    {lanyard.spotify ? "Signal Found" : "Signal Lost"}
+                    {lanyard.spotify ? "Live Signal" : "System Standby"}
                   </div>
-                  <p className="text-sm text-white/70 font-medium leading-snug">
+                  <p className="text-sm text-white/60 font-medium leading-snug">
                     {lanyard.spotify
                       ? lanyard.spotify.song
-                      : "Ambient system noise detected."}
+                      : "Optimizing system resources."}
                   </p>
                 </div>
-                <div className="mt-6 h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                <div className="mt-6 h-1 w-full bg-white/10 rounded-full overflow-hidden">
                   <motion.div
                     animate={{ width: ["10%", "90%", "10%"] }}
                     transition={{ duration: 8, repeat: Infinity }}
@@ -274,8 +298,8 @@ export default function App() {
                 value={status.toUpperCase()}
                 color={activeStatusColor}
               />
-              <StatBox label="Latency" value="2.4ms" />
-              <StatBox label="System" value="V3.2" />
+              <StatBox label="Latency" value="1.9ms" />
+              <StatBox label="Protocol" value="V3.7_DL" />
             </div>
           </div>
         </div>
