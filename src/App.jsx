@@ -325,7 +325,7 @@ const MainPage = ({
             : "grayscale(0) brightness(1)",
       }}
       transition={{ duration: 1, ease: "easeOut" }}
-      className={`relative min-h-screen bg-[#08080c] overflow-hidden text-white font-sans selection:bg-white/10 cursor-none ${isOverclocked ? "animate-pulse-slow" : ""}`}
+      className={`relative min-h-screen bg-[#08080c] overflow-hidden text-white font-sans selection:bg-white/10 cursor-none`}
     >
       <CommandPalette
         isOpen={isPaletteOpen}
@@ -333,7 +333,6 @@ const MainPage = ({
         activeColor={activeColor}
       />
 
-      {/* --- GLITCH OVERLAY (Overclock Only) --- */}
       {isOverclocked && (
         <div className="absolute inset-0 pointer-events-none z-[50] opacity-[0.05] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,2px_100%]" />
       )}
@@ -652,7 +651,6 @@ const MainPage = ({
         </div>
       </div>
 
-      {/* --- LIVE TERMINAL LOGS OVERLAY --- */}
       <div className="fixed bottom-0 left-0 w-full z-[100] px-8 pb-8 flex justify-between items-end pointer-events-none">
         <div className="flex flex-col gap-2 max-w-lg">
           <div className="flex items-center gap-2 mb-2 opacity-30">
@@ -689,7 +687,6 @@ const MainPage = ({
         </div>
 
         <div className="flex flex-col items-end gap-4 pointer-events-auto">
-          {/* Overclock Toggle */}
           <button
             onClick={() => setIsOverclocked(!isOverclocked)}
             className={`flex items-center gap-3 px-4 py-2 rounded-full border transition-all duration-500 ${isOverclocked ? "bg-orange-500 text-black border-orange-400 font-black shadow-[0_0_20px_rgba(255,68,0,0.5)]" : "bg-white/5 border-white/10 text-white/40 hover:text-white"}`}
@@ -770,22 +767,29 @@ export default function App() {
     const handleMouse = (e) => {
       cursorX.set(e.clientX);
       cursorY.set(e.clientY);
+
       if (mainCardRef.current) {
         const rect = mainCardRef.current.getBoundingClientRect();
+
+        // Tilt zone: card rect + buffer
         const isNear =
-          e.clientX >= rect.left - 100 &&
-          e.clientX <= rect.right + 100 &&
-          e.clientY >= rect.top - 100 &&
-          e.clientY <= rect.bottom + 100;
+          e.clientX >= rect.left - 150 &&
+          e.clientX <= rect.right + 150 &&
+          e.clientY >= rect.top - 150 &&
+          e.clientY <= rect.bottom + 150;
+
         if (isNear) {
-          cardRotateX.set((e.clientY - (rect.top + rect.height / 2)) / 20);
-          cardRotateY.set(-(e.clientX - (rect.left + rect.width / 2)) / 20);
+          const centerX = rect.left + rect.width / 2;
+          const centerY = rect.top + rect.height / 2;
+          cardRotateX.set((e.clientY - centerY) / 25);
+          cardRotateY.set(-(e.clientX - centerX) / 25);
         } else {
           cardRotateX.set(0);
           cardRotateY.set(0);
         }
       }
     };
+
     window.addEventListener("mousemove", handleMouse);
     return () => {
       clearInterval(dInt);
