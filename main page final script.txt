@@ -16,9 +16,100 @@ import {
   Cpu,
   Terminal,
   Eye,
+  Activity,
 } from "lucide-react";
 
 const DISCORD_ID = "900965149496737874";
+
+// --- SMD COMMAND PALETTE ---
+const CommandPalette = ({ isOpen, onClose, activeColor }) => {
+  const [input, setInput] = useState("");
+  const [history, setHistory] = useState([
+    "> SMD_BOOT_SEQUENCE_COMPLETE",
+    '> TYPE "HELP" FOR COMMANDS',
+  ]);
+
+  const handleCommand = (e) => {
+    if (e.key === "Enter") {
+      const cmd = input.toLowerCase().trim();
+      let response = "";
+      if (cmd === "help") response = "AVAIL: DISCORD, CLEAR, EXIT";
+      else if (cmd === "discord") {
+        window.open(`https://discord.com/users/${DISCORD_ID}`);
+        response = "LINKING_EXTERNAL...";
+      } else if (cmd === "clear") {
+        setHistory(["> CACHE_CLEARED"]);
+        setInput("");
+        return;
+      } else if (cmd === "exit") {
+        onClose();
+        return;
+      } else response = `ERR: ${cmd.toUpperCase()}_NOT_FOUND`;
+
+      setHistory((prev) => [
+        ...prev.slice(-3),
+        `> ${cmd.toUpperCase()}`,
+        response,
+      ]);
+      setInput("");
+    }
+  };
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[20000] flex items-center justify-center backdrop-blur-sm bg-black/40 cursor-default"
+          onClick={onClose}
+        >
+          <motion.div
+            initial={{ scale: 0.8, rotateX: 20 }}
+            animate={{ scale: 1, rotateX: 0 }}
+            exit={{ scale: 0.8, opacity: 0 }}
+            className="w-full max-w-[400px] bg-[#050505] border-[4px] border-[#1a1a1a] rounded-sm p-1 shadow-[0_0_50px_rgba(0,0,0,1)] relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="bg-[#0a0f0a] border border-[#222] p-4 rounded-sm relative overflow-hidden">
+              <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.03),rgba(0,255,0,0.01),rgba(0,0,255,0.03))] z-10 pointer-events-none bg-[length:100%_3px,3px_100%]" />
+              <div className="flex items-center justify-between mb-4 border-b border-green-900/30 pb-2">
+                <div className="flex items-center gap-2">
+                  <Activity
+                    size={12}
+                    className="text-green-500 animate-pulse"
+                  />
+                  <span className="text-[10px] font-mono text-green-500/50 uppercase tracking-tighter">
+                    SMD_PROMPT_V2.1
+                  </span>
+                </div>
+                <div className="w-2 h-2 rounded-full bg-red-600 animate-ping" />
+              </div>
+              <div className="h-24 font-mono text-[10px] text-green-500/80 mb-4 overflow-hidden flex flex-col justify-end">
+                {history.map((line, i) => (
+                  <div key={i} className="leading-tight">
+                    {line}
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center gap-2 bg-black/50 p-2 border border-green-900/20">
+                <span className="text-green-500 text-xs font-mono">$</span>
+                <input
+                  autoFocus
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleCommand}
+                  className="bg-transparent border-none outline-none text-green-400 font-mono text-xs w-full caret-green-500"
+                />
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
 
 // --- AESTHETIC ENTRY SCREEN ---
 const EntryScreen = ({ onEnter, activeColor, cursorX, cursorY }) => {
@@ -110,6 +201,42 @@ const MainPage = ({
   const isPlaying = !!lanyard.spotify || lanyard.listening_to_spotify;
   const customStatus = lanyard.activities?.find((a) => a.type === 4)?.state;
   const [isLevelHovered, setIsLevelHovered] = useState(false);
+  const [isPaletteOpen, setIsPaletteOpen] = useState(false);
+  const [logs, setLogs] = useState([]);
+
+  // CMD key listener
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "`") {
+        e.preventDefault();
+        setIsPaletteOpen((prev) => !prev);
+      }
+      if (e.key === "Escape") setIsPaletteOpen(false);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  // System Logs Generator
+  useEffect(() => {
+    const addLog = (msg) =>
+      setLogs((prev) => [
+        ...prev.slice(-8),
+        { id: Date.now() + Math.random(), text: msg },
+      ]);
+    const interval = setInterval(() => {
+      const phrases = [
+        "Kernel stabilized",
+        "Memory heap optimized",
+        "Handshake active",
+        "Encrypted link maintained",
+        "Latency stabilized at 0.002ms",
+        "Inbound packet filtered",
+      ];
+      addLog(`SYSTEM: ${phrases[Math.floor(Math.random() * phrases.length)]}`);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Level & Birthday Logic
   const calculateLevel = () => {
@@ -175,6 +302,12 @@ const MainPage = ({
       transition={{ duration: 1, ease: "easeOut" }}
       className="relative min-h-screen bg-[#08080c] overflow-hidden text-white font-sans selection:bg-white/10 cursor-none"
     >
+      <CommandPalette
+        isOpen={isPaletteOpen}
+        onClose={() => setIsPaletteOpen(false)}
+        activeColor={activeColor}
+      />
+
       <div className="fixed top-12 right-12 z-[100] opacity-40 font-black text-4xl tracking-tighter uppercase italic select-none font-mono">
         zorq.page
       </div>
@@ -234,8 +367,8 @@ const MainPage = ({
                 <img
                   src={`https://cdn.discordapp.com/avatars/${lanyard.discord_user.id}/${lanyard.discord_user.avatar}.png?size=512`}
                   className="w-32 h-32 rounded-full border-4 border-zinc-800 object-cover shadow-2xl"
+                  alt="Avatar"
                 />
-
                 <motion.div
                   animate={{
                     filter: [
@@ -252,7 +385,6 @@ const MainPage = ({
                   className="absolute bottom-2 right-2 w-6 h-6 rounded-full border-4 border-[#0f0f11]"
                   style={{ backgroundColor: activeColor, color: activeColor }}
                 />
-
                 {customStatus && (
                   <motion.div
                     initial={{ opacity: 0, x: -10 }}
@@ -327,7 +459,7 @@ const MainPage = ({
             </button>
           </motion.div>
 
-          <div className="lg:col-span-8 flex flex-col gap-4">
+          <div className="lg:col-span-8 flex flex-col gap-4 relative">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
               {projects.map((p, i) => (
                 <div
@@ -359,6 +491,7 @@ const MainPage = ({
                       <img
                         src={lanyard.spotify.album_art_url}
                         className="w-full h-full object-cover opacity-60"
+                        alt="Album art"
                       />
                     ) : (
                       <Disc size={16} className="opacity-20 text-white" />
@@ -368,7 +501,7 @@ const MainPage = ({
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[14px] font-black uppercase tracking-widest text-green-500 mb-1 flex items-center gap-1">
-                    <div
+                    <span
                       className={`w-1.5 h-1.5 rounded-full ${isPlaying ? "bg-green-500 animate-pulse" : "bg-white/10"}`}
                     />
                     {isPlaying ? "Spotify" : "Offline"}
@@ -414,6 +547,44 @@ const MainPage = ({
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* --- LIVE TERMINAL LOGS OVERLAY --- */}
+      <div className="fixed bottom-0 left-0 w-full z-[100] px-8 pb-8 flex justify-between items-end pointer-events-none">
+        <div className="flex flex-col gap-2 max-w-lg">
+          <div className="flex items-center gap-2 mb-2 opacity-30">
+            <Terminal size={12} />
+            <span className="text-[9px] font-black uppercase tracking-widest">
+              Mainframe_Live_Log
+            </span>
+          </div>
+          <AnimatePresence mode="popLayout">
+            {logs.map((log) => (
+              <motion.p
+                key={log.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 0.5, x: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="font-mono text-[11px] uppercase tracking-widest flex items-center gap-3"
+              >
+                <span
+                  style={{ color: activeColor }}
+                  className="font-bold shrink-0"
+                >
+                  &gt;&gt;
+                </span>
+                <span className="truncate">{log.text}</span>
+              </motion.p>
+            ))}
+          </AnimatePresence>
+        </div>
+
+        <div className="pointer-events-auto group flex items-center gap-3 px-4 py-2 bg-white/[0.02] border border-white/10 rounded-full opacity-40 hover:opacity-100 transition-opacity">
+          <Terminal size={14} />
+          <span className="text-[9px] font-bold uppercase tracking-[0.2em]">
+            Press ` to open command prompt
+          </span>
         </div>
       </div>
 
@@ -463,7 +634,6 @@ export default function App() {
     const handleMouse = (e) => {
       cursorX.set(e.clientX);
       cursorY.set(e.clientY);
-
       if (mainCardRef.current) {
         const rect = mainCardRef.current.getBoundingClientRect();
         const isNear =
