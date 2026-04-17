@@ -236,7 +236,6 @@ const MainPage = ({
                   className="w-32 h-32 rounded-full border-4 border-zinc-800 object-cover shadow-2xl"
                 />
 
-                {/* BREATHING STATUS DOT (Bright to Dull) */}
                 <motion.div
                   animate={{
                     filter: [
@@ -279,16 +278,25 @@ const MainPage = ({
                 <motion.div
                   onMouseEnter={() => setIsLevelHovered(true)}
                   onMouseLeave={() => setIsLevelHovered(false)}
-                  className="bg-white/[0.03] border border-white/5 p-5 rounded-2xl w-full transition-colors hover:bg-white/[0.06]"
+                  className="bg-white/[0.03] border border-white/5 p-5 rounded-2xl w-full transition-all duration-300 hover:bg-white/[0.06]"
                 >
                   <div className="flex justify-between items-end mb-2">
-                    <p className="text-[9px] opacity-60 font-black uppercase transition-all">
-                      {isLevelHovered ? "Days Left" : "Current Level"}
-                    </p>
-                    <p className="text-2xl font-black tracking-tighter italic">
-                      {isLevelHovered
-                        ? getDaysUntilBirthday()
-                        : calculateLevel()}
+                    <div className="flex flex-col">
+                      <p
+                        className={`text-[9px] font-black uppercase tracking-widest transition-colors duration-300 ${isLevelHovered ? "text-white/80" : "opacity-60"}`}
+                      >
+                        {isLevelHovered ? "Days Left" : "Current Level"}
+                      </p>
+                      {isLevelHovered && (
+                        <p className="text-[10px] font-bold text-white/40">
+                          {getDaysUntilBirthday()} Days
+                        </p>
+                      )}
+                    </div>
+                    <p
+                      className={`text-2xl font-black tracking-tighter italic transition-colors duration-300 ${isLevelHovered ? "text-white/60" : "text-white"}`}
+                    >
+                      {calculateLevel()}
                     </p>
                   </div>
                   <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden relative">
