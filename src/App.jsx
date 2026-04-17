@@ -18,27 +18,28 @@ import {
   Eye,
   Activity,
   Power,
-  ZapOff,
   Monitor,
+  ZapOff,
 } from "lucide-react";
 
 const DISCORD_ID = "900965149496737874";
 
-// --- COMMAND PALETTE ---
+// --- SMD COMMAND PALETTE ---
 const CommandPalette = ({ isOpen, onClose, activeColor }) => {
   const [input, setInput] = useState("");
-  const [history, setHistory] = useState(['> TYPE "HELP" FOR COMMANDS']);
+  const [history, setHistory] = useState([
+    "> SMD_BOOT_SEQUENCE_COMPLETE",
+    '> TYPE "HELP" FOR COMMANDS',
+  ]);
 
   const handleCommand = (e) => {
     if (e.key === "Enter") {
       const cmd = input.toLowerCase().trim();
       let response = "";
-      if (cmd === "help") response = "AVAIL: DISCORD, CLEAR, EXIT, SPECS";
-      else if (cmd === "specs")
-        response = "RUNNING_DIAGNOSTICS... (Check Terminal)";
+      if (cmd === "help") response = "AVAIL: DISCORD, CLEAR, EXIT";
       else if (cmd === "discord") {
         window.open(`https://discord.com/users/${DISCORD_ID}`);
-        response = "LINKING...";
+        response = "LINKING_EXTERNAL...";
       } else if (cmd === "clear") {
         setHistory(["> CACHE_CLEARED"]);
         setInput("");
@@ -64,29 +65,45 @@ const CommandPalette = ({ isOpen, onClose, activeColor }) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[20000] flex items-center justify-center backdrop-blur-sm bg-black/40"
+          className="fixed inset-0 z-[20000] flex items-center justify-center backdrop-blur-sm bg-black/40 cursor-default"
           onClick={onClose}
         >
           <motion.div
-            initial={{ scale: 0.8 }}
-            animate={{ scale: 1 }}
-            className="w-full max-w-[400px] bg-[#050505] border-[4px] border-[#1a1a1a] p-1"
+            initial={{ scale: 0.8, rotateX: 20 }}
+            animate={{ scale: 1, rotateX: 0 }}
+            exit={{ scale: 0.8, opacity: 0 }}
+            className="w-full max-w-[400px] bg-[#050505] border-[4px] border-[#1a1a1a] rounded-sm p-1 shadow-[0_0_50px_rgba(0,0,0,1)] relative"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="bg-[#0a0f0a] border border-[#222] p-4 font-mono">
-              <div className="h-24 text-[10px] text-green-500/80 mb-4 overflow-hidden flex flex-col justify-end">
+            <div className="bg-[#0a0f0a] border border-[#222] p-4 rounded-sm relative overflow-hidden">
+              <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.03),rgba(0,255,0,0.01),rgba(0,0,255,0.03))] z-10 pointer-events-none bg-[length:100%_3px,3px_100%]" />
+              <div className="flex items-center justify-between mb-4 border-b border-green-900/30 pb-2">
+                <div className="flex items-center gap-2">
+                  <Activity
+                    size={12}
+                    className="text-green-500 animate-pulse"
+                  />
+                  <span className="text-[10px] font-mono text-green-500/50 uppercase tracking-tighter">
+                    SMD_PROMPT_V2.1
+                  </span>
+                </div>
+                <div className="w-2 h-2 rounded-full bg-red-600 animate-ping" />
+              </div>
+              <div className="h-24 font-mono text-[10px] text-green-500/80 mb-4 overflow-hidden flex flex-col justify-end">
                 {history.map((line, i) => (
-                  <div key={i}>{line}</div>
+                  <div key={i} className="leading-tight">
+                    {line}
+                  </div>
                 ))}
               </div>
               <div className="flex items-center gap-2 bg-black/50 p-2 border border-green-900/20">
-                <span className="text-green-500 text-xs">$</span>
+                <span className="text-green-500 text-xs font-mono">$</span>
                 <input
                   autoFocus
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleCommand}
-                  className="bg-transparent border-none outline-none text-green-400 text-xs w-full"
+                  className="bg-transparent border-none outline-none text-green-400 font-mono text-xs w-full caret-green-500"
                 />
               </div>
             </div>
@@ -97,16 +114,26 @@ const CommandPalette = ({ isOpen, onClose, activeColor }) => {
   );
 };
 
-// --- ENTRY SCREEN ---
+// --- AESTHETIC ENTRY SCREEN ---
 const EntryScreen = ({ onEnter, activeColor, cursorX, cursorY }) => {
   return (
     <motion.div
-      exit={{ opacity: 0, scale: 1.1 }}
+      initial={{ opacity: 1 }}
+      exit={{ opacity: 0, scale: 1.1, filter: "blur(40px)" }}
+      transition={{ duration: 1.2, ease: [0.43, 0.13, 0.23, 0.96] }}
       onClick={onEnter}
-      className="fixed inset-0 z-[10000] flex flex-col items-center justify-center bg-[#050508] cursor-none"
+      className="fixed inset-0 z-[10000] flex flex-col items-center justify-center bg-[#050508] cursor-none overflow-hidden"
     >
+      <div
+        className="absolute inset-0 opacity-20"
+        style={{
+          backgroundImage: `radial-gradient(circle at 50% 50%, ${activeColor}33 0%, transparent 50%)`,
+        }}
+      />
+      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] brightness-100 pointer-events-none" />
+
       <motion.div
-        className="fixed top-0 left-0 w-8 h-8 rounded-full pointer-events-none z-[10001] mix-blend-difference"
+        className="fixed top-0 left-0 w-8 h-8 rounded-full pointer-events-none z-[10001] mix-blend-difference shadow-[0_0_20px_rgba(255,255,255,0.3)]"
         style={{
           x: cursorX,
           y: cursorY,
@@ -115,20 +142,52 @@ const EntryScreen = ({ onEnter, activeColor, cursorX, cursorY }) => {
           backgroundColor: activeColor,
         }}
       />
-      <h1 className="text-5xl md:text-7xl font-black italic text-white mb-2">
-        WELCOME, <span style={{ color: activeColor }}>VISITOR.</span>
-      </h1>
-      <p className="font-mono text-[10px] tracking-[0.5em] text-white/30 mb-12 uppercase">
-        Establishing secure handshake
-      </p>
-      <div className="px-10 py-5 rounded-full border border-white/5 bg-white/[0.02] text-[12px] font-black uppercase tracking-[0.4em] text-white/60">
-        Access Mainframe
+
+      <motion.div
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.2, duration: 0.8 }}
+        className="text-center relative z-10"
+      >
+        <div className="flex items-center justify-center gap-3 mb-6">
+          <div className="h-[1px] w-12 bg-gradient-to-r from-transparent to-white/20" />
+          <Eye
+            size={16}
+            style={{ color: activeColor }}
+            className="opacity-60"
+          />
+          <div className="h-[1px] w-12 bg-gradient-to-l from-transparent to-white/20" />
+        </div>
+
+        <h1 className="text-5xl md:text-7xl font-black italic tracking-tighter text-white mb-2 selection:bg-none">
+          WELCOME, <span style={{ color: activeColor }}>VISITOR.</span>
+        </h1>
+
+        <p className="font-mono text-[10px] tracking-[0.5em] uppercase text-white/30 mb-12">
+          Establishing secure handshake <span className="animate-pulse">_</span>
+        </p>
+
+        <motion.div
+          whileHover={{ scale: 1.05 }}
+          className="group relative px-10 py-5 rounded-full border border-white/5 bg-white/[0.02] backdrop-blur-md overflow-hidden transition-all shadow-2xl"
+          style={{ boxShadow: `0 0 40px ${activeColor}15` }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+          <span className="relative text-[12px] font-black uppercase tracking-[0.4em] text-white/60 group-hover:text-white transition-colors">
+            Access Mainframe
+          </span>
+        </motion.div>
+      </motion.div>
+
+      <div className="absolute bottom-10 left-10 flex items-center gap-4 opacity-20 font-mono text-[8px]">
+        <Cpu size={14} />
+        <span className="uppercase">SESSION_STABILIZED // {activeColor}</span>
       </div>
     </motion.div>
   );
 };
 
-// --- MAIN PAGE ---
+// --- MAIN PAGE COMPONENT ---
 const MainPage = ({
   lanyard,
   time,
@@ -142,33 +201,55 @@ const MainPage = ({
   status,
   cardRef,
 }) => {
+  const isPlaying = !!lanyard.spotify || lanyard.listening_to_spotify;
+  const customStatus = lanyard.activities?.find((a) => a.type === 4)?.state;
+  const [isLevelHovered, setIsLevelHovered] = useState(false);
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
-  const [isOverclock, setIsOverclock] = useState(false);
-  const [isLowPower, setIsLowPower] = useState(false);
   const [logs, setLogs] = useState([]);
+  const [isLowPower, setIsLowPower] = useState(false);
+
+  // New Local States
+  const [isOverclock, setIsOverclock] = useState(false);
   const [visitorSpecs, setVisitorSpecs] = useState(null);
 
-  // Overclock Colors & Theme
   const themeColor = isOverclock ? "#ff0033" : activeColor;
 
-  const getSpecs = () => {
-    const specs = {
-      os: navigator.platform,
-      cores: navigator.hardwareConcurrency || "Unknown",
-      ram: navigator.deviceMemory ? `${navigator.deviceMemory}GB` : "Unknown",
-      agent:
-        navigator.userAgent.split(") ")[0].split(" (")[1] || "Generic Client",
-      gpu: "Detecting...",
-    };
-    setVisitorSpecs(specs);
-    addLog(
-      `DIAGNOSTIC: ARCHITECTURE=${specs.os} | CORES=${specs.cores} | RAM=${specs.ram}`,
-    );
+  const handleScanSpecs = () => {
+    try {
+      const specs = {
+        cores: navigator.hardwareConcurrency || "Ukn",
+        ram: navigator.deviceMemory ? `${navigator.deviceMemory}GB` : "Ukn",
+        platform: navigator.platform || "Ukn",
+      };
+      setVisitorSpecs(specs);
+      addLog(
+        `DIAGNOSTIC: CORES_${specs.cores} | RAM_${specs.ram} | PLATFORM_${specs.platform}`,
+      );
+    } catch (e) {
+      addLog("DIAGNOSTIC_ERR: PERMISSION_DENIED");
+    }
   };
 
   const addLog = (msg) =>
-    setLogs((prev) => [...prev.slice(-8), { id: Math.random(), text: msg }]);
+    setLogs((prev) => [
+      ...prev.slice(-8),
+      { id: Date.now() + Math.random(), text: msg },
+    ]);
 
+  // CMD key listener
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "`") {
+        e.preventDefault();
+        setIsPaletteOpen((prev) => !prev);
+      }
+      if (e.key === "Escape") setIsPaletteOpen(false);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  // System Logs Generator
   useEffect(() => {
     const interval = setInterval(() => {
       if (!isLowPower) {
@@ -176,7 +257,9 @@ const MainPage = ({
           "Kernel stabilized",
           "Memory heap optimized",
           "Handshake active",
-          "Latency: 0.002ms",
+          "Encrypted link maintained",
+          "Latency stabilized at 0.002ms",
+          "Inbound packet filtered",
         ];
         addLog(
           `SYSTEM: ${phrases[Math.floor(Math.random() * phrases.length)]}`,
@@ -186,17 +269,78 @@ const MainPage = ({
     return () => clearInterval(interval);
   }, [isLowPower]);
 
+  // Level & Birthday Logic
+  const calculateLevel = () => {
+    const birthDate = new Date(2008, 5, 20);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  const getDaysUntilBirthday = () => {
+    const today = new Date();
+    let nextBday = new Date(today.getFullYear(), 5, 20);
+    if (today > nextBday) {
+      nextBday.setFullYear(today.getFullYear() + 1);
+    }
+    const diffTime = Math.abs(nextBday - today);
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+
+  const calculateYearProgress = () => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), 0, 1);
+    const end = new Date(now.getFullYear() + 1, 0, 1);
+    return ((now - start) / (end - start)) * 100;
+  };
+
+  const projects = [
+    {
+      name: "Discord Automation",
+      desc: "Advanced bot architectures.",
+      icon: <Bot size={18} />,
+    },
+    {
+      name: "Roblox Mechanics",
+      desc: "Optimized movement physics.",
+      icon: <Zap size={18} />,
+    },
+    {
+      name: "Server Architecture",
+      desc: "Environment deployment.",
+      icon: <Server size={18} />,
+    },
+    {
+      name: "Cross-Platform Sync",
+      desc: "Discord relay bridges.",
+      icon: <Share2 size={18} />,
+    },
+    {
+      name: "Web Infrastructure",
+      desc: "High-availability hosting.",
+      icon: <Globe size={18} />,
+    },
+  ];
+
   return (
     <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
       animate={{
+        opacity: 1,
+        scale: 1,
         filter: isLowPower
-          ? "grayscale(1) brightness(0.6)"
+          ? "grayscale(1) brightness(0.7)"
           : isOverclock
-            ? "contrast(1.2) brightness(1.1)"
-            : "none",
+            ? "contrast(1.1) brightness(1.1)"
+            : "grayscale(0) brightness(1)",
         backgroundColor: isOverclock ? "#100000" : "#08080c",
       }}
-      className="relative min-h-screen overflow-hidden text-white font-sans cursor-none"
+      transition={{ duration: 1, ease: "easeOut" }}
+      className="relative min-h-screen overflow-hidden text-white font-sans selection:bg-white/10 cursor-none"
     >
       <CommandPalette
         isOpen={isPaletteOpen}
@@ -204,25 +348,57 @@ const MainPage = ({
         activeColor={themeColor}
       />
 
-      {/* Overclock CRT Overlay */}
       {isOverclock && (
         <div className="fixed inset-0 pointer-events-none z-[200] opacity-[0.05] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%] animate-pulse" />
       )}
 
+      <div className="fixed top-12 right-12 z-[100] opacity-40 font-black text-4xl tracking-tighter uppercase italic select-none font-mono">
+        zorq.page
+      </div>
+
+      {!isLowPower && (
+        <motion.div
+          className="fixed top-0 left-0 w-[400px] h-[400px] rounded-full blur-[100px] opacity-[0.15] pointer-events-none z-0"
+          style={{
+            x: cursorX,
+            y: cursorY,
+            translateX: "-50%",
+            translateY: "-50%",
+            backgroundColor: themeColor,
+          }}
+        />
+      )}
+
       <motion.div
-        className="fixed top-0 left-0 w-8 h-8 rounded-full pointer-events-none z-[9999] mix-blend-difference"
+        style={{
+          x: bgTextX,
+          y: bgTextY,
+          translateX: "-50%",
+          translateY: "-50%",
+        }}
+        className="fixed top-1/2 left-1/2 z-[1] pointer-events-none"
+      >
+        <h1
+          className="font-black text-zinc-900 leading-none select-none"
+          style={{ fontSize: "25vw" }}
+        >
+          ZORQ
+        </h1>
+      </motion.div>
+
+      <motion.div
+        className="fixed top-0 left-0 w-8 h-8 rounded-full pointer-events-none z-[9999] mix-blend-difference shadow-[0_0_20px_rgba(255,255,255,0.3)]"
         style={{
           x: cursorX,
           y: cursorY,
           translateX: "-50%",
           translateY: "-50%",
-          backgroundColor: themeColor,
+          backgroundColor: isLowPower ? "#333" : themeColor,
         }}
       />
 
       <div className="min-h-screen flex items-center justify-center p-6 z-10 relative">
-        <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Main Profile Card */}
+        <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
           <motion.div
             ref={cardRef}
             style={{
@@ -230,90 +406,179 @@ const MainPage = ({
               rotateY: cardRotateY,
               transformStyle: "preserve-3d",
             }}
-            className="lg:col-span-4 bg-[#0f0f11] border border-white/5 p-8 rounded-[2.5rem] flex flex-col items-center shadow-2xl"
+            className="lg:col-span-4 bg-[#0f0f11] border border-white/5 p-8 rounded-[2.5rem] shadow-2xl flex flex-col items-center"
           >
-            <div className="relative mb-6">
-              <img
-                src={`https://cdn.discordapp.com/avatars/${lanyard.discord_user.id}/${lanyard.discord_user.avatar}.png?size=512`}
-                className="w-32 h-32 rounded-full border-4 border-zinc-800 object-cover"
-                alt="Avatar"
-              />
-              <div
-                className="absolute bottom-2 right-2 w-6 h-6 rounded-full border-4 border-[#0f0f11]"
-                style={{ backgroundColor: themeColor }}
-              />
-            </div>
-            <h1 className="text-3xl font-black uppercase italic">Zorq</h1>
-            <p
-              className="text-[9px] font-black uppercase tracking-[0.2em] mb-8"
-              style={{ color: themeColor }}
-            >
-              {isOverclock ? "OVERCLOCKED_ARCHITECT" : "Full-Stack Architect"}
-            </p>
-
-            {/* System Specs Readout */}
-            <AnimatePresence>
-              {visitorSpecs && (
+            <div className="flex flex-col items-center w-full">
+              <div className="relative mb-6">
+                <img
+                  src={`https://cdn.discordapp.com/avatars/${lanyard.discord_user.id}/${lanyard.discord_user.avatar}.png?size=512`}
+                  className="w-32 h-32 rounded-full border-4 border-zinc-800 object-cover shadow-2xl"
+                  alt="Avatar"
+                />
                 <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="w-full bg-white/[0.03] border border-white/5 p-4 rounded-2xl mb-4 font-mono text-[9px] space-y-1"
+                  animate={
+                    isLowPower
+                      ? {}
+                      : {
+                          filter: [
+                            "brightness(1.5) drop-shadow(0 0 8px currentColor)",
+                            "brightness(0.6) drop-shadow(0 0 0px currentColor)",
+                            "brightness(1.5) drop-shadow(0 0 8px currentColor)",
+                          ],
+                        }
+                  }
+                  transition={{
+                    duration: 2.5,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                  className="absolute bottom-2 right-2 w-6 h-6 rounded-full border-4 border-[#0f0f11]"
+                  style={{
+                    backgroundColor: isLowPower ? "#555" : themeColor,
+                    color: isLowPower ? "#555" : themeColor,
+                  }}
+                />
+              </div>
+
+              <h1 className="text-3xl font-black tracking-tighter mb-1 uppercase">
+                Zorq
+              </h1>
+              <p
+                className={`text-[9px] font-black uppercase tracking-[0.2em] mb-8 transition-colors duration-500`}
+                style={{
+                  color: isLowPower ? "rgba(255,255,255,0.2)" : themeColor,
+                }}
+              >
+                {isOverclock ? "OVERCLOCKED_ARCHITECT" : "Full-Stack Architect"}
+              </p>
+
+              <div className="w-full space-y-3 text-left mb-6">
+                {visitorSpecs && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-white/[0.03] border border-white/5 p-4 rounded-2xl font-mono text-[9px] space-y-1"
+                  >
+                    <div className="flex justify-between text-white/40 uppercase">
+                      <span>Hardware_Cores:</span>{" "}
+                      <span className="text-white">{visitorSpecs.cores}</span>
+                    </div>
+                    <div className="flex justify-between text-white/40 uppercase">
+                      <span>System_RAM:</span>{" "}
+                      <span className="text-white">{visitorSpecs.ram}</span>
+                    </div>
+                  </motion.div>
+                )}
+
+                <motion.div
+                  onMouseEnter={() => setIsLevelHovered(true)}
+                  onMouseLeave={() => setIsLevelHovered(false)}
+                  className="bg-white/[0.03] border border-white/5 p-5 rounded-2xl w-full transition-all duration-300 hover:bg-white/[0.06]"
                 >
-                  <div className="flex justify-between text-white/40">
-                    <span>CPU_CORES:</span>{" "}
-                    <span className="text-white">{visitorSpecs.cores}</span>
+                  <div className="flex justify-between items-end mb-2">
+                    <div className="flex flex-col">
+                      <p
+                        className={`text-[9px] font-black uppercase tracking-widest transition-colors duration-300 ${isLevelHovered ? "text-white/80" : "opacity-60"}`}
+                      >
+                        {isLevelHovered ? "Days Left" : "Current Level"}
+                      </p>
+                    </div>
+                    <p
+                      className={`text-2xl font-black tracking-tighter italic transition-colors duration-300 ${isLevelHovered ? "text-white/60" : "text-white"}`}
+                    >
+                      {calculateLevel()}
+                    </p>
                   </div>
-                  <div className="flex justify-between text-white/40">
-                    <span>V_MEMORY:</span>{" "}
-                    <span className="text-white">{visitorSpecs.ram}</span>
-                  </div>
-                  <div className="flex justify-between text-white/40">
-                    <span>ARCH:</span>{" "}
-                    <span className="text-white">{visitorSpecs.os}</span>
+                  <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden relative">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${calculateYearProgress()}%` }}
+                      style={{
+                        backgroundColor: isLowPower ? "#444" : themeColor,
+                      }}
+                      className="h-full shadow-[0_0_10px_rgba(255,255,255,0.2)]"
+                    />
                   </div>
                 </motion.div>
-              )}
-            </AnimatePresence>
+              </div>
+            </div>
 
-            <button
-              onClick={getSpecs}
-              className="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-white/10 transition-all"
-            >
-              <Monitor size={12} /> Scan Hardware
-            </button>
-            <button
-              style={{ backgroundColor: themeColor }}
-              className="w-full mt-3 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-xl"
-            >
-              Secure Link <ExternalLink size={14} />
-            </button>
+            <div className="w-full space-y-2">
+              <button
+                onClick={handleScanSpecs}
+                className="w-full py-3 rounded-2xl bg-white/5 border border-white/10 text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-white/10 transition-all text-white/60"
+              >
+                <Monitor size={12} /> Diagnostic Scan
+              </button>
+              <button
+                style={{ backgroundColor: isLowPower ? "#222" : themeColor }}
+                className="w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:brightness-110 shadow-xl transition-all"
+              >
+                Secure Link <ExternalLink size={14} />
+              </button>
+            </div>
           </motion.div>
 
-          {/* Side Content */}
-          <div className="lg:col-span-8 flex flex-col gap-4">
+          <div className="lg:col-span-8 flex flex-col gap-4 relative">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
-              {[
-                { name: "Infrastructure", icon: <Server size={18} /> },
-                { name: "Automation", icon: <Bot size={18} /> },
-                { name: "Optimization", icon: <Zap size={18} /> },
-                { name: "Security", icon: <Terminal size={18} /> },
-              ].map((p, i) => (
+              {projects.map((p, i) => (
                 <div
                   key={i}
-                  className="bg-[#0f0f11] border border-white/5 p-6 rounded-[2rem] hover:bg-white/[0.02] transition-all"
+                  className="bg-[#0f0f11] border border-white/5 p-6 rounded-[2rem] hover:bg-white/[0.02] transition-all flex flex-col justify-center"
                 >
-                  <div style={{ color: themeColor }} className="mb-3">
+                  <div
+                    style={{ color: isLowPower ? "#555" : themeColor }}
+                    className="mb-3"
+                  >
                     {p.icon}
                   </div>
-                  <h3 className="text-lg font-bold">{p.name}</h3>
-                  <p className="text-[11px] text-white/30">
-                    System-level architecture and deployment.
+                  <h3 className="text-lg font-bold mb-1">{p.name}</h3>
+                  <p className="text-[11px] text-white/30 leading-snug">
+                    {p.desc}
                   </p>
                 </div>
               ))}
+
+              <div className="bg-[#0f0f11] border border-white/10 rounded-[2rem] p-5 flex items-center gap-4 relative overflow-hidden group">
+                <div className="relative w-14 h-14 flex-shrink-0">
+                  <motion.div
+                    animate={isPlaying && !isLowPower ? { rotate: 360 } : {}}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
+                    className="w-full h-full rounded-full bg-zinc-900 border-[3px] border-zinc-800 flex items-center justify-center shadow-lg overflow-hidden"
+                  >
+                    {isPlaying && lanyard.spotify ? (
+                      <img
+                        src={lanyard.spotify.album_art_url}
+                        className="w-full h-full object-cover opacity-60"
+                        alt="Album art"
+                      />
+                    ) : (
+                      <Disc size={16} className="opacity-20 text-white" />
+                    )}
+                  </motion.div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p
+                    className={`text-[14px] font-black uppercase tracking-widest mb-1 flex items-center gap-1 ${isLowPower ? "text-white/20" : "text-green-500"}`}
+                  >
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${isPlaying && !isLowPower ? "bg-green-500 animate-pulse" : "bg-white/10"}`}
+                    />
+                    {isPlaying ? "Spotify" : "Offline"}
+                  </p>
+                  <h3 className="text-xs font-bold truncate text-white/90">
+                    {isPlaying && lanyard.spotify
+                      ? lanyard.spotify.song
+                      : "Awaiting Signal..."}
+                  </h3>
+                </div>
+              </div>
             </div>
 
-            {/* Bottom Controls */}
             <div className="flex gap-4">
               <button
                 onClick={() => {
@@ -322,44 +587,57 @@ const MainPage = ({
                   addLog(
                     isOverclock
                       ? "SYSTEM: STABILIZING_CLOCKS"
-                      : "WARNING: CLOCK_SPEED_CRITICAL",
+                      : "WARNING: OVERCLOCKING_CORE",
                   );
                 }}
-                className={`flex-1 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all border ${isOverclock ? "bg-red-500 text-white border-red-400 animate-pulse" : "bg-white/5 border-white/10 text-white/60 hover:text-white"}`}
+                className={`flex-1 py-4 rounded-[1.5rem] font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all border ${isOverclock ? "bg-red-500 text-white border-red-400 animate-pulse shadow-[0_0_30px_rgba(239,68,68,0.3)]" : "bg-white/5 border-white/10 text-white/40 hover:text-white"}`}
               >
                 {isOverclock ? <Zap size={14} /> : <ZapOff size={14} />}{" "}
                 {isOverclock ? "OVERCLOCK_ACTIVE" : "OVERCLOCK_SYSTEM"}
               </button>
+
               <button
                 onClick={() => setIsLowPower(!isLowPower)}
-                className="p-4 rounded-2xl bg-white/5 border border-white/10 text-white/40"
+                className={`px-8 py-4 rounded-[1.5rem] border transition-all duration-500 ${isLowPower ? "bg-white/10 border-white/20 text-white" : "bg-white/5 border-white/10 text-white/40 hover:text-white"}`}
               >
-                <Power size={18} />
+                <Power
+                  size={18}
+                  className={isLowPower ? "" : "animate-pulse"}
+                />
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Terminal Footer */}
-      <div className="fixed bottom-8 left-8 z-[100] flex flex-col gap-1 pointer-events-none">
-        <AnimatePresence mode="popLayout">
-          {logs.map((log) => (
-            <motion.p
-              key={log.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 0.4, x: 0 }}
-              exit={{ opacity: 0 }}
-              className="font-mono text-[10px] uppercase tracking-tighter"
-            >
-              <span style={{ color: themeColor }}>&gt;</span> {log.text}
-            </motion.p>
-          ))}
-        </AnimatePresence>
+      {/* --- LIVE TERMINAL LOGS OVERLAY --- */}
+      <div className="fixed bottom-0 left-0 w-full z-[100] px-8 pb-8 flex justify-between items-end pointer-events-none">
+        <div className="flex flex-col gap-2 max-w-lg">
+          <AnimatePresence mode="popLayout">
+            {!isLowPower &&
+              logs.map((log) => (
+                <motion.p
+                  key={log.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 0.5, x: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="font-mono text-[11px] uppercase tracking-widest flex items-center gap-3"
+                >
+                  <span
+                    style={{ color: themeColor }}
+                    className="font-bold shrink-0"
+                  >
+                    &gt;&gt;
+                  </span>
+                  <span className="truncate">{log.text}</span>
+                </motion.p>
+              ))}
+          </AnimatePresence>
+        </div>
       </div>
 
-      <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] px-10 py-4 bg-white/[0.03] border border-white/10 rounded-full backdrop-blur-xl">
-        <p className="text-2xl font-black tracking-[0.4em] font-mono italic text-white/80">
+      <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] px-10 py-4 bg-white/[0.03] border border-white/10 rounded-full backdrop-blur-xl shadow-2xl">
+        <p className="text-2xl font-black tracking-[0.4em] text-white/80 font-mono italic">
           {time}
         </p>
       </div>
@@ -367,43 +645,83 @@ const MainPage = ({
   );
 };
 
+// --- APP WRAPPER (UNCHANGED CORE LOGIC) ---
 export default function App() {
   const [hasEntered, setHasEntered] = useState(false);
   const [lanyard, setLanyard] = useState(null);
-  const [time, setTime] = useState("");
+  const [time, setTime] = useState(new Date().toLocaleTimeString());
   const mainCardRef = useRef(null);
+
   const cursorX = useSpring(0, { stiffness: 600, damping: 25 });
   const cursorY = useSpring(0, { stiffness: 600, damping: 25 });
-  const cardRotateX = useSpring(0);
-  const cardRotateY = useSpring(0);
+  const cardRotateX = useSpring(0, { stiffness: 100, damping: 30 });
+  const cardRotateY = useSpring(0, { stiffness: 100, damping: 30 });
+
+  const bgTextX = useTransform(cursorX, [0, 2000], [20, -20]);
+  const bgTextY = useTransform(cursorY, [0, 1000], [20, -20]);
 
   useEffect(() => {
     const fetchData = async () => {
-      const res = await fetch(
-        `https://api.lanyard.rest/v1/users/${DISCORD_ID}`,
-      );
-      const json = await res.json();
-      if (json.success) setLanyard(json.data);
+      try {
+        const res = await fetch(
+          `https://api.lanyard.rest/v1/users/${DISCORD_ID}`,
+        );
+        const json = await res.json();
+        if (json.success) setLanyard(json.data);
+      } catch (err) {
+        console.error("Lanyard Failed");
+      }
     };
     fetchData();
-    setInterval(() => setTime(new Date().toLocaleTimeString()), 1000);
-    window.addEventListener("mousemove", (e) => {
+    const dInt = setInterval(fetchData, 10000);
+    const tInt = setInterval(
+      () => setTime(new Date().toLocaleTimeString()),
+      1000,
+    );
+
+    const handleMouse = (e) => {
       cursorX.set(e.clientX);
       cursorY.set(e.clientY);
-    });
-  }, []);
+      if (mainCardRef.current) {
+        const rect = mainCardRef.current.getBoundingClientRect();
+        const isNear =
+          e.clientX >= rect.left - 100 &&
+          e.clientX <= rect.right + 100 &&
+          e.clientY >= rect.top - 100 &&
+          e.clientY <= rect.bottom + 100;
+        if (isNear) {
+          cardRotateX.set((e.clientY - (rect.top + rect.height / 2)) / 20);
+          cardRotateY.set(-(e.clientX - (rect.left + rect.width / 2)) / 20);
+        } else {
+          cardRotateX.set(0);
+          cardRotateY.set(0);
+        }
+      }
+    };
+    window.addEventListener("mousemove", handleMouse);
+    return () => {
+      clearInterval(dInt);
+      clearInterval(tInt);
+      window.removeEventListener("mousemove", handleMouse);
+    };
+  }, [cursorX, cursorY, cardRotateX, cardRotateY]);
 
-  if (!lanyard) return <div className="bg-[#08080c] min-h-screen" />;
-  const activeColor =
-    { online: "#22c55e", dnd: "#ef4444", idle: "#f59e0b" }[
-      lanyard.discord_status
-    ] || "#64748b";
+  if (!lanyard) return <div className="min-h-screen bg-[#08080c]" />;
+
+  const status = lanyard.discord_status;
+  const statusColors = {
+    online: "#22c55e",
+    dnd: "#ef4444",
+    idle: "#f59e0b",
+    offline: "#64748b",
+  };
+  const activeColor = statusColors[status] || statusColors.offline;
 
   return (
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       {!hasEntered ? (
         <EntryScreen
-          key="e"
+          key="entry"
           onEnter={() => setHasEntered(true)}
           activeColor={activeColor}
           cursorX={cursorX}
@@ -411,14 +729,17 @@ export default function App() {
         />
       ) : (
         <MainPage
-          key="m"
+          key="main"
           lanyard={lanyard}
           time={time}
           cursorX={cursorX}
           cursorY={cursorY}
           cardRotateX={cardRotateX}
           cardRotateY={cardRotateY}
+          bgTextX={bgTextX}
+          bgTextY={bgTextY}
           activeColor={activeColor}
+          status={status}
           cardRef={mainCardRef}
         />
       )}
