@@ -17,6 +17,7 @@ import {
   Terminal,
   Eye,
   Activity,
+  Power,
 } from "lucide-react";
 
 const DISCORD_ID = "900965149496737874";
@@ -203,6 +204,7 @@ const MainPage = ({
   const [isLevelHovered, setIsLevelHovered] = useState(false);
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
   const [logs, setLogs] = useState([]);
+  const [isLowPower, setIsLowPower] = useState(false);
 
   // CMD key listener
   useEffect(() => {
@@ -298,7 +300,13 @@ const MainPage = ({
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
+      animate={{
+        opacity: 1,
+        scale: 1,
+        filter: isLowPower
+          ? "grayscale(1) brightness(0.7)"
+          : "grayscale(0) brightness(1)",
+      }}
       transition={{ duration: 1, ease: "easeOut" }}
       className="relative min-h-screen bg-[#08080c] overflow-hidden text-white font-sans selection:bg-white/10 cursor-none"
     >
@@ -312,16 +320,19 @@ const MainPage = ({
         zorq.page
       </div>
 
-      <motion.div
-        className="fixed top-0 left-0 w-[400px] h-[400px] rounded-full blur-[100px] opacity-[0.15] pointer-events-none z-0"
-        style={{
-          x: cursorX,
-          y: cursorY,
-          translateX: "-50%",
-          translateY: "-50%",
-          backgroundColor: activeColor,
-        }}
-      />
+      {/* Background Glow - Disabled in Low Power */}
+      {!isLowPower && (
+        <motion.div
+          className="fixed top-0 left-0 w-[400px] h-[400px] rounded-full blur-[100px] opacity-[0.15] pointer-events-none z-0"
+          style={{
+            x: cursorX,
+            y: cursorY,
+            translateX: "-50%",
+            translateY: "-50%",
+            backgroundColor: activeColor,
+          }}
+        />
+      )}
 
       <motion.div
         style={{
@@ -340,6 +351,7 @@ const MainPage = ({
         </h1>
       </motion.div>
 
+      {/* Cursor Glow - Only active color when not in low power */}
       <motion.div
         className="fixed top-0 left-0 w-8 h-8 rounded-full pointer-events-none z-[9999] mix-blend-difference shadow-[0_0_20px_rgba(255,255,255,0.3)]"
         style={{
@@ -347,7 +359,7 @@ const MainPage = ({
           y: cursorY,
           translateX: "-50%",
           translateY: "-50%",
-          backgroundColor: activeColor,
+          backgroundColor: isLowPower ? "#333" : activeColor,
         }}
       />
 
@@ -370,20 +382,27 @@ const MainPage = ({
                   alt="Avatar"
                 />
                 <motion.div
-                  animate={{
-                    filter: [
-                      "brightness(1.5) drop-shadow(0 0 8px currentColor)",
-                      "brightness(0.6) drop-shadow(0 0 0px currentColor)",
-                      "brightness(1.5) drop-shadow(0 0 8px currentColor)",
-                    ],
-                  }}
+                  animate={
+                    isLowPower
+                      ? {}
+                      : {
+                          filter: [
+                            "brightness(1.5) drop-shadow(0 0 8px currentColor)",
+                            "brightness(0.6) drop-shadow(0 0 0px currentColor)",
+                            "brightness(1.5) drop-shadow(0 0 8px currentColor)",
+                          ],
+                        }
+                  }
                   transition={{
                     duration: 2.5,
                     repeat: Infinity,
                     ease: "easeInOut",
                   }}
                   className="absolute bottom-2 right-2 w-6 h-6 rounded-full border-4 border-[#0f0f11]"
-                  style={{ backgroundColor: activeColor, color: activeColor }}
+                  style={{
+                    backgroundColor: isLowPower ? "#555" : activeColor,
+                    color: isLowPower ? "#555" : activeColor,
+                  }}
                 />
                 {customStatus && (
                   <motion.div
@@ -402,7 +421,9 @@ const MainPage = ({
               <h1 className="text-3xl font-black tracking-tighter mb-1 uppercase">
                 Zorq
               </h1>
-              <p className="text-[9px] font-black uppercase tracking-[0.2em] text-green-500/80 mb-8">
+              <p
+                className={`text-[9px] font-black uppercase tracking-[0.2em] mb-8 ${isLowPower ? "text-white/20" : "text-green-500/80"}`}
+              >
                 Full-Stack Architect
               </p>
 
@@ -435,7 +456,9 @@ const MainPage = ({
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${calculateYearProgress()}%` }}
-                      style={{ backgroundColor: activeColor }}
+                      style={{
+                        backgroundColor: isLowPower ? "#444" : activeColor,
+                      }}
                       className="h-full shadow-[0_0_10px_rgba(255,255,255,0.2)]"
                     />
                   </div>
@@ -452,7 +475,7 @@ const MainPage = ({
               </div>
             </div>
             <button
-              style={{ backgroundColor: activeColor }}
+              style={{ backgroundColor: isLowPower ? "#222" : activeColor }}
               className="w-full mt-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:brightness-110 shadow-xl transition-all"
             >
               Secure Link <ExternalLink size={14} />
@@ -466,7 +489,10 @@ const MainPage = ({
                   key={i}
                   className="bg-[#0f0f11] border border-white/5 p-6 rounded-[2rem] hover:bg-white/[0.02] transition-all flex flex-col justify-center"
                 >
-                  <div style={{ color: activeColor }} className="mb-3">
+                  <div
+                    style={{ color: isLowPower ? "#555" : activeColor }}
+                    className="mb-3"
+                  >
                     {p.icon}
                   </div>
                   <h3 className="text-lg font-bold mb-1">{p.name}</h3>
@@ -479,7 +505,7 @@ const MainPage = ({
               <div className="bg-[#0f0f11] border border-white/10 rounded-[2rem] p-5 flex items-center gap-4 relative overflow-hidden group">
                 <div className="relative w-14 h-14 flex-shrink-0">
                   <motion.div
-                    animate={isPlaying ? { rotate: 360 } : {}}
+                    animate={isPlaying && !isLowPower ? { rotate: 360 } : {}}
                     transition={{
                       duration: 3,
                       repeat: Infinity,
@@ -500,9 +526,11 @@ const MainPage = ({
                   </motion.div>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[14px] font-black uppercase tracking-widest text-green-500 mb-1 flex items-center gap-1">
+                  <p
+                    className={`text-[14px] font-black uppercase tracking-widest mb-1 flex items-center gap-1 ${isLowPower ? "text-white/20" : "text-green-500"}`}
+                  >
                     <span
-                      className={`w-1.5 h-1.5 rounded-full ${isPlaying ? "bg-green-500 animate-pulse" : "bg-white/10"}`}
+                      className={`w-1.5 h-1.5 rounded-full ${isPlaying && !isLowPower ? "bg-green-500 animate-pulse" : "bg-white/10"}`}
                     />
                     {isPlaying ? "Spotify" : "Offline"}
                   </p>
@@ -514,7 +542,7 @@ const MainPage = ({
                   <div className="mt-3 h-0.5 w-full bg-white/5 rounded-full overflow-hidden">
                     <motion.div
                       animate={{ width: isPlaying ? "70%" : "0%" }}
-                      className="h-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]"
+                      className={`h-full ${isLowPower ? "bg-white/10" : "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]"}`}
                     />
                   </div>
                 </div>
@@ -528,7 +556,7 @@ const MainPage = ({
                 </p>
                 <p
                   className="text-[10px] font-bold uppercase"
-                  style={{ color: activeColor }}
+                  style={{ color: isLowPower ? "#555" : activeColor }}
                 >
                   {status}
                 </p>
@@ -560,31 +588,51 @@ const MainPage = ({
             </span>
           </div>
           <AnimatePresence mode="popLayout">
-            {logs.map((log) => (
-              <motion.p
-                key={log.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 0.5, x: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="font-mono text-[11px] uppercase tracking-widest flex items-center gap-3"
-              >
-                <span
-                  style={{ color: activeColor }}
-                  className="font-bold shrink-0"
+            {!isLowPower &&
+              logs.map((log) => (
+                <motion.p
+                  key={log.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 0.5, x: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="font-mono text-[11px] uppercase tracking-widest flex items-center gap-3"
                 >
-                  &gt;&gt;
-                </span>
-                <span className="truncate">{log.text}</span>
-              </motion.p>
-            ))}
+                  <span
+                    style={{ color: activeColor }}
+                    className="font-bold shrink-0"
+                  >
+                    &gt;&gt;
+                  </span>
+                  <span className="truncate">{log.text}</span>
+                </motion.p>
+              ))}
+            {isLowPower && (
+              <p className="font-mono text-[11px] uppercase tracking-widest opacity-20 italic">
+                Logging Suspended (Low Power)
+              </p>
+            )}
           </AnimatePresence>
         </div>
 
-        <div className="pointer-events-auto group flex items-center gap-3 px-4 py-2 bg-white/[0.02] border border-white/10 rounded-full opacity-40 hover:opacity-100 transition-opacity">
-          <Terminal size={14} />
-          <span className="text-[9px] font-bold uppercase tracking-[0.2em]">
-            Press ` to open command prompt
-          </span>
+        {/* RIGHT SIDE TOOLS */}
+        <div className="flex flex-col items-end gap-4 pointer-events-auto">
+          {/* POWER SWITCH */}
+          <button
+            onClick={() => setIsLowPower(!isLowPower)}
+            className={`flex items-center gap-3 px-4 py-2 rounded-full border transition-all duration-500 ${isLowPower ? "bg-white/10 border-white/20 text-white" : "bg-red-500/10 border-red-500/20 text-red-500 hover:bg-red-500/20"}`}
+          >
+            <Power size={14} className={isLowPower ? "" : "animate-pulse"} />
+            <span className="text-[9px] font-bold uppercase tracking-[0.2em]">
+              {isLowPower ? "ACTIVATE_CORE" : "LOW_POWER_MODE"}
+            </span>
+          </button>
+
+          <div className="group flex items-center gap-3 px-4 py-2 bg-white/[0.02] border border-white/10 rounded-full opacity-40 hover:opacity-100 transition-opacity">
+            <Terminal size={14} />
+            <span className="text-[9px] font-bold uppercase tracking-[0.2em]">
+              Press ` to open command prompt
+            </span>
+          </div>
         </div>
       </div>
 
