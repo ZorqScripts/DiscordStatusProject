@@ -97,7 +97,7 @@ export default function App() {
       clearInterval(tInt);
       window.removeEventListener("mousemove", handleMouse);
     };
-  }, []);
+  }, [cursorX, cursorY, cardRotateX, cardRotateY]);
 
   if (!lanyard) return <div className="min-h-screen bg-[#08080c]" />;
 
@@ -113,6 +113,18 @@ export default function App() {
 
   return (
     <div className="relative min-h-screen bg-[#08080c] overflow-hidden text-white font-sans selection:bg-white/10">
+      {/* 1. CURSOR GLOW (The Orb) */}
+      <motion.div
+        className="fixed top-0 left-0 w-[400px] h-[400px] rounded-full blur-[100px] opacity-[0.15] pointer-events-none z-0"
+        style={{
+          x: cursorX,
+          y: cursorY,
+          translateX: "-50%",
+          translateY: "-50%",
+          backgroundColor: activeColor,
+        }}
+      />
+
       {/* Background Parallax ZORQ */}
       <motion.div
         style={{
@@ -131,9 +143,9 @@ export default function App() {
         </h1>
       </motion.div>
 
-      {/* Dynamic Cursor */}
+      {/* 2. DYNAMIC CURSOR (The Dot) */}
       <motion.div
-        className="fixed top-0 left-0 w-8 h-8 rounded-full pointer-events-none z-[9999] mix-blend-difference"
+        className="fixed top-0 left-0 w-8 h-8 rounded-full pointer-events-none z-[9999] mix-blend-difference shadow-[0_0_20px_rgba(255,255,255,0.3)]"
         style={{
           x: cursorX,
           y: cursorY,
@@ -145,7 +157,7 @@ export default function App() {
 
       <div className="min-h-screen flex items-center justify-center p-6 z-10 relative">
         <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-          {/* Main Card - Locked PFP */}
+          {/* Main Card */}
           <motion.div
             ref={cardRef}
             style={{
@@ -153,9 +165,9 @@ export default function App() {
               rotateY: cardRotateY,
               transformStyle: "preserve-3d",
             }}
-            className="lg:col-span-4 bg-[#0f0f11] border border-white/5 p-8 rounded-[2.5rem] shadow-2xl flex flex-col items-center justify-between"
+            className="lg:col-span-4 bg-[#0f0f11] border border-white/5 p-8 rounded-[2.5rem] shadow-2xl flex flex-col items-center"
           >
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center w-full">
               <div className="relative mb-6">
                 <img
                   src={`https://cdn.discordapp.com/avatars/${lanyard.discord_user.id}/${lanyard.discord_user.avatar}.png?size=512`}
@@ -173,8 +185,9 @@ export default function App() {
                 Full-Stack Architect
               </p>
 
-              <div className="w-full space-y-3 text-left">
-                <div className="bg-white/[0.03] border border-white/5 p-4 rounded-2xl">
+              {/* LONG HOLDERS: Process & Clock matched to button length */}
+              <div className="w-full space-y-3 text-left mb-auto">
+                <div className="bg-white/[0.03] border border-white/5 p-4 rounded-2xl w-full">
                   <p className="text-[9px] opacity-30 font-black uppercase mb-1">
                     Process
                   </p>
@@ -183,7 +196,7 @@ export default function App() {
                       "Zzzzz"}
                   </p>
                 </div>
-                <div className="bg-white/[0.03] border border-white/5 p-4 rounded-2xl">
+                <div className="bg-white/[0.03] border border-white/5 p-4 rounded-2xl w-full">
                   <p className="text-[9px] opacity-30 font-black uppercase mb-1 font-sans">
                     Clock
                   </p>
@@ -220,26 +233,29 @@ export default function App() {
                 </div>
               ))}
 
-              {/* COMPACT SPOTIFY - Fits in the Red Box */}
+              {/* COMPACT SPOTIFY - SPINNING VINYL */}
               <div className="bg-[#0f0f11] border border-white/10 rounded-[2rem] p-5 flex items-center gap-4 relative overflow-hidden group">
                 <div className="relative w-14 h-14 flex-shrink-0">
                   <motion.div
                     animate={isPlaying ? { rotate: 360 } : {}}
                     transition={{
-                      duration: 4,
+                      duration: 3,
                       repeat: Infinity,
                       ease: "linear",
                     }}
-                    className="w-full h-full rounded-full bg-zinc-900 border-[3px] border-zinc-800 flex items-center justify-center shadow-lg"
+                    className="w-full h-full rounded-full bg-zinc-900 border-[3px] border-zinc-800 flex items-center justify-center shadow-lg overflow-hidden"
                   >
                     {isPlaying ? (
                       <img
                         src={lanyard.spotify.album_art_url}
-                        className="w-6 h-6 rounded-full"
+                        className="w-full h-full object-cover opacity-60"
+                        alt="album art"
                       />
                     ) : (
                       <Disc size={16} className="opacity-20 text-white" />
                     )}
+                    {/* Vinyl Hole Effect */}
+                    <div className="absolute w-2 h-2 bg-[#0f0f11] rounded-full border border-white/10" />
                   </motion.div>
                 </div>
                 <div className="flex-1 min-w-0">
@@ -250,12 +266,13 @@ export default function App() {
                     {isPlaying ? "Spotify" : "Offline"}
                   </p>
                   <h3 className="text-xs font-bold truncate text-white/90">
-                    {isPlaying ? lanyard.spotify.song : "No signal detected"}
+                    {isPlaying ? lanyard.spotify.song : "Awaiting Signal..."}
                   </h3>
                   <div className="mt-3 h-0.5 w-full bg-white/5 rounded-full overflow-hidden">
                     <motion.div
+                      initial={{ width: 0 }}
                       animate={{ width: isPlaying ? "70%" : "0%" }}
-                      className="h-full bg-green-500"
+                      className="h-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]"
                     />
                   </div>
                 </div>
@@ -269,10 +286,10 @@ export default function App() {
                   Signal
                 </p>
                 <p
-                  className="text-[10px] font-bold"
+                  className="text-[10px] font-bold uppercase"
                   style={{ color: activeColor }}
                 >
-                  {status.toUpperCase()}
+                  {status}
                 </p>
               </div>
               <div className="bg-[#0f0f11] border border-white/5 p-3 rounded-xl text-center">
