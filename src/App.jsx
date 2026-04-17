@@ -15,6 +15,7 @@ import {
   Disc,
   ShieldCheck,
   Cpu,
+  Terminal,
 } from "lucide-react";
 
 const DISCORD_ID = "900965149496737874";
@@ -66,26 +67,26 @@ const EntryScreen = ({ onEnter, activeColor }) => {
       >
         <div className="flex items-center justify-center gap-3 mb-6">
           <div className="h-[1px] w-12 bg-gradient-to-r from-transparent to-white/20" />
-          <ShieldCheck size={16} className="text-white/40" />
+          <Terminal size={16} className="text-white/40" />
           <div className="h-[1px] w-12 bg-gradient-to-l from-transparent to-white/20" />
         </div>
 
         <h1 className="text-5xl md:text-7xl font-black italic tracking-tighter text-white mb-2 selection:bg-none">
-          HELLO <span style={{ color: activeColor }}>WORLD.</span>
+          WAKE UP, <span style={{ color: activeColor }}>ZORQ.</span>
         </h1>
 
         <p className="font-mono text-[10px] tracking-[0.5em] uppercase text-white/30 mb-12">
-          Initialising Identity Protocol{" "}
+          De-encrypting digital footprints{" "}
           <span className="animate-pulse">_</span>
         </p>
 
         <motion.div
           whileHover={{ scale: 1.05 }}
-          className="group relative px-8 py-4 rounded-full border border-white/5 bg-white/[0.02] backdrop-blur-md overflow-hidden transition-all"
+          className="group relative px-10 py-5 rounded-full border border-white/5 bg-white/[0.02] backdrop-blur-md overflow-hidden transition-all shadow-2xl"
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-          <span className="relative text-[11px] font-black uppercase tracking-[0.3em] text-white/60 group-hover:text-white transition-colors">
-            Tap to Authenticate
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+          <span className="relative text-[12px] font-black uppercase tracking-[0.4em] text-white/60 group-hover:text-white transition-colors">
+            Enter the Void
           </span>
         </motion.div>
       </motion.div>
@@ -93,13 +94,13 @@ const EntryScreen = ({ onEnter, activeColor }) => {
       {/* Decorative Corner UI */}
       <div className="absolute bottom-10 left-10 flex items-center gap-4 opacity-20 font-mono text-[8px]">
         <Cpu size={14} />
-        <span>SYSTEM_READY // ASIA_NODE</span>
+        <span>STATUS // UNTETHERED</span>
       </div>
     </motion.div>
   );
 };
 
-// --- MAIN PAGE COMPONENT (REMAINS STABLE) ---
+// --- MAIN PAGE COMPONENT (STABLE) ---
 const MainPage = ({
   lanyard,
   time,
