@@ -19,31 +19,26 @@ const projects = [
     name: "Discord Automation",
     desc: "Advanced bot architectures and API integration.",
     icon: <Bot size={20} />,
-    color: "text-indigo-400",
   },
   {
     name: "Roblox Mechanics",
     desc: "Optimized movement physics and player-controller scripts.",
     icon: <Zap size={20} />,
-    color: "text-yellow-400",
   },
   {
     name: "Server Architecture",
     desc: "Minecraft environment deployment and backend optimization.",
     icon: <Server size={20} />,
-    color: "text-emerald-400",
   },
   {
     name: "Cross-Platform Sync",
     desc: "Minecraft-to-Discord relay bridges and live data fetching.",
     icon: <Share2 size={16} />,
-    color: "text-blue-400",
   },
   {
     name: "Web Infrastructure",
     desc: "High-availability web hosting and frontend deployment.",
     icon: <Globe size={20} />,
-    color: "text-purple-400",
   },
 ];
 
@@ -122,7 +117,7 @@ export default function App() {
 
   if (!lanyard)
     return (
-      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+      <div className="min-h-screen bg-[#f3f4f6] flex items-center justify-center">
         <div className="text-red-500 font-mono animate-pulse text-xs italic uppercase tracking-[0.3em]">
           connecting_to_mainframes...
         </div>
@@ -130,18 +125,16 @@ export default function App() {
     );
 
   const status = lanyard.discord_status;
-  const accentColor = lanyard.spotify
-    ? "#1DB954"
-    : status === "dnd"
-      ? "#ef4444"
-      : "#6366f1";
+
+  // NEW DEFINITIVE ACCENT COLOR (changed to bold red #ef4444 for primary contrast on light mode)
+  const accentColor = "#ef4444";
 
   return (
-    // DEPTH UPDATE 1: LIGHTER BACKGROUND COLOR (changed from #0c0c0c to #18181b)
-    <div className="relative min-h-screen bg-[#18181b] overflow-hidden selection:bg-red-500/30">
-      {/* DEPTH UPDATE 3: SLIGHTLY BRIGHTER BACKGROUND GLOW (increased size and opacity) */}
+    // DEPTH UPDATE 1: LIGHTER BACKGROUND COLOR (changed from #18181b to #e2e8f0 silver-white)
+    <div className="relative min-h-screen bg-[#e2e8f0] overflow-hidden selection:bg-red-500/30">
+      {/* Background Glow (slightly subtle on light mode) */}
       <motion.div
-        className="fixed top-0 left-0 w-[700px] h-[700px] rounded-full blur-[180px] opacity-[0.25] pointer-events-none z-0"
+        className="fixed top-0 left-0 w-[700px] h-[700px] rounded-full blur-[180px] opacity-[0.15] pointer-events-none z-0"
         style={{
           x: glowX,
           y: glowY,
@@ -162,15 +155,17 @@ export default function App() {
         }}
       />
 
-      <div className="min-h-screen text-white font-sans flex items-center justify-center p-4 lg:p-12 z-10 relative">
+      {/* DEPTH UPDATE 2: SWAPPED TEXT TO DARK GRAY (changed text-white to text-gray-900) */}
+      <div className="min-h-screen text-gray-900 font-sans flex items-center justify-center p-4 lg:p-12 z-10 relative">
         <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Main Profile Card */}
           <div className="lg:col-span-4 flex justify-center">
             <motion.div
               ref={cardRef}
               style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-              // DEPTH UPDATE 2: ADDED HEAVY DROP SHADOW (shadow-[0_40px_100px_rgba(0,0,0,0.6)]) and slightly solid background
-              className="w-full max-w-[360px] bg-zinc-900/60 border border-white/5 backdrop-blur-3xl p-8 rounded-[2.5rem] text-center shadow-[0_40px_100px_rgba(0,0,0,0.6)]"
+              // DEPTH UPDATE 3: ADDED HEAVY, BROAD SHADOW (changed shadow color and increased blur)
+              // We are making the card white, the shadow dark, for contrast on the silver background.
+              className="w-full max-w-[360px] bg-white border border-black/5 backdrop-blur-3xl p-8 rounded-[2.5rem] text-center shadow-[0_40px_100px_rgba(0,0,0,0.15)]"
             >
               <div
                 className="relative inline-block mb-6"
@@ -178,18 +173,18 @@ export default function App() {
               >
                 <img
                   src={`https://cdn.discordapp.com/avatars/${lanyard.discord_user.id}/${lanyard.discord_user.avatar}.png?size=512`}
-                  className="relative w-28 h-28 rounded-full ring-4 ring-white/5 bg-zinc-950 object-cover z-10"
+                  className="relative w-28 h-28 rounded-full ring-4 ring-black/5 bg-gray-200 object-cover z-10"
                   alt="avatar"
                 />
                 <div
-                  className="absolute bottom-2 right-2 w-6 h-6 rounded-full border-4 border-[#18181b] z-30 shadow-lg"
+                  className="absolute bottom-2 right-2 w-6 h-6 rounded-full border-4 border-white z-30 shadow-lg"
                   style={{ backgroundColor: accentColor }}
                 ></div>
               </div>
 
               <h1
                 style={{ transform: "translateZ(50px)" }}
-                className="text-4xl font-black tracking-tighter italic uppercase text-white leading-none mb-1"
+                className="text-4xl font-black tracking-tighter italic uppercase text-gray-950 leading-none mb-1"
               >
                 {lanyard.discord_user.global_name || "zxrqi"}
               </h1>
@@ -222,7 +217,7 @@ export default function App() {
                   backgroundColor: accentColor,
                   transform: "translateZ(60px)",
                 }}
-                className="w-full py-4 rounded-2xl text-[10px] font-black tracking-[0.2em] uppercase flex items-center justify-center gap-2 hover:brightness-110 active:scale-95 transition-all shadow-xl"
+                className="w-full py-4 rounded-2xl text-[10px] font-black tracking-[0.2em] uppercase flex items-center justify-center gap-2 hover:brightness-110 active:scale-95 transition-all shadow-xl text-white"
               >
                 Secure Link <ExternalLink size={14} />
               </button>
@@ -231,21 +226,23 @@ export default function App() {
 
           {/* Secondary Info Grid */}
           <div className="lg:col-span-8 flex flex-col gap-6">
-            {/* DEPTH UPDATE: Project grid elements also get shadows for consistency */}
+            {/* Project elements also get shadows and dark text */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {projects.map((proj, i) => (
                 <div
                   key={i}
-                  className="bg-white/[0.01] border border-white/5 p-6 rounded-3xl backdrop-blur-xl group hover:bg-white/[0.04] transition-all shadow-[0_20px_60px_rgba(0,0,0,0.3)]"
+                  className="bg-white border border-black/5 p-6 rounded-3xl backdrop-blur-xl group hover:bg-black/[0.04] transition-all shadow-[0_20px_60px_rgba(0,0,0,0.08)]"
                 >
-                  <div className={`mb-4 ${proj.color}`}>{proj.icon}</div>
+                  <div className={`mb-4`} style={{ color: accentColor }}>
+                    {proj.icon}
+                  </div>
                   <h3 className="text-lg font-bold mb-1.5">{proj.name}</h3>
-                  <p className="text-[11px] text-zinc-500 leading-relaxed">
+                  <p className="text-[11px] text-gray-700 leading-relaxed">
                     {proj.desc}
                   </p>
                 </div>
               ))}
-              <div className="bg-white/[0.01] border border-white/5 rounded-3xl p-6 backdrop-blur-xl flex flex-col justify-between shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
+              <div className="bg-white border border-black/5 rounded-3xl p-6 backdrop-blur-xl flex flex-col justify-between shadow-[0_20px_60px_rgba(0,0,0,0.08)]">
                 <div>
                   <div
                     className="flex items-center gap-2 text-[10px] font-black uppercase mb-3"
@@ -257,13 +254,13 @@ export default function App() {
                     />{" "}
                     {lanyard.spotify ? "Live Stream" : "System Core"}
                   </div>
-                  <p className="text-sm text-zinc-300 font-medium leading-snug">
+                  <p className="text-sm text-gray-800 font-medium leading-snug">
                     {lanyard.spotify
                       ? `Playing: ${lanyard.spotify.song}`
                       : "Resources optimized. No active media found."}
                   </p>
                 </div>
-                <div className="mt-6 h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                <div className="mt-6 h-1 w-full bg-black/5 rounded-full overflow-hidden">
                   <motion.div
                     animate={{ width: ["5%", "95%", "5%"] }}
                     transition={{ duration: 6, repeat: Infinity }}
@@ -275,11 +272,7 @@ export default function App() {
             </div>
             {/* Stat boxes get a lighter shadow */}
             <div className="grid grid-cols-3 gap-4">
-              <StatBox
-                label="Signal"
-                value={status.toUpperCase()}
-                themeColor={accentColor}
-              />
+              <StatBox label="Signal" value={status.toUpperCase()} />
               <StatBox label="Node" value="Asia_DL" />
               <StatBox label="Relay" value="0.002ms" />
             </div>
@@ -292,25 +285,22 @@ export default function App() {
 
 function ActivityRow({ label, value }) {
   return (
-    <div className="bg-white/[0.02] p-4 rounded-2xl border border-white/5 flex flex-col text-left">
-      <p className="text-[9px] text-zinc-600 font-black uppercase mb-1">
+    <div className="bg-black/[0.02] p-4 rounded-2xl border border-black/5 flex flex-col text-left">
+      <p className="text-[9px] text-gray-700 font-black uppercase mb-1">
         {label}
       </p>
-      <p className="text-sm font-medium truncate text-zinc-200">{value}</p>
+      <p className="text-sm font-medium truncate text-gray-900">{value}</p>
     </div>
   );
 }
 
-function StatBox({ label, value, themeColor }) {
+function StatBox({ label, value }) {
   return (
-    <div className="text-center p-4 rounded-2xl bg-white/[0.01] border border-white/5 backdrop-blur-md shadow-[0_10px_40px_rgba(0,0,0,0.2)]">
-      <p className="text-[10px] text-zinc-600 font-black uppercase mb-1 tracking-tighter">
+    <div className="text-center p-4 rounded-2xl bg-white border border-black/5 backdrop-blur-md shadow-[0_10px_40px_rgba(0,0,0,0.05)]">
+      <p className="text-[10px] text-gray-700 font-black uppercase mb-1 tracking-tighter">
         {label}
       </p>
-      <p
-        className="text-[11px] font-mono font-bold uppercase"
-        style={{ color: themeColor || "white" }}
-      >
+      <p className="text-[11px] font-mono font-bold uppercase text-gray-950">
         {value}
       </p>
     </div>
