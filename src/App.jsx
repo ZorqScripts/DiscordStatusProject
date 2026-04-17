@@ -13,9 +13,9 @@ import {
   Server,
   Share2,
   Disc,
-  ShieldCheck,
   Cpu,
   Terminal,
+  Eye,
 } from "lucide-react";
 
 const DISCORD_ID = "900965149496737874";
@@ -38,7 +38,6 @@ const EntryScreen = ({ onEnter, activeColor }) => {
       onClick={onEnter}
       className="fixed inset-0 z-[10000] flex flex-col items-center justify-center bg-[#050508] cursor-none overflow-hidden"
     >
-      {/* Aesthetic Background Elements */}
       <div
         className="absolute inset-0 opacity-20"
         style={{
@@ -47,7 +46,6 @@ const EntryScreen = ({ onEnter, activeColor }) => {
       />
       <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] brightness-100 pointer-events-none" />
 
-      {/* Branded Entry Cursor */}
       <motion.div
         className="fixed top-0 left-0 w-4 h-4 rounded-full pointer-events-none z-[10001]"
         animate={{ x: mousePos.x - 8, y: mousePos.y - 8 }}
@@ -58,7 +56,6 @@ const EntryScreen = ({ onEnter, activeColor }) => {
         }}
       />
 
-      {/* Greeting Content */}
       <motion.div
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -67,17 +64,16 @@ const EntryScreen = ({ onEnter, activeColor }) => {
       >
         <div className="flex items-center justify-center gap-3 mb-6">
           <div className="h-[1px] w-12 bg-gradient-to-r from-transparent to-white/20" />
-          <Terminal size={16} className="text-white/40" />
+          <Eye size={16} className="text-white/40" />
           <div className="h-[1px] w-12 bg-gradient-to-l from-transparent to-white/20" />
         </div>
 
         <h1 className="text-5xl md:text-7xl font-black italic tracking-tighter text-white mb-2 selection:bg-none">
-          WAKE UP, <span style={{ color: activeColor }}>ZORQ.</span>
+          WELCOME, <span style={{ color: activeColor }}>VISITOR.</span>
         </h1>
 
         <p className="font-mono text-[10px] tracking-[0.5em] uppercase text-white/30 mb-12">
-          De-encrypting digital footprints{" "}
-          <span className="animate-pulse">_</span>
+          Establishing secure handshake <span className="animate-pulse">_</span>
         </p>
 
         <motion.div
@@ -86,21 +82,20 @@ const EntryScreen = ({ onEnter, activeColor }) => {
         >
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
           <span className="relative text-[12px] font-black uppercase tracking-[0.4em] text-white/60 group-hover:text-white transition-colors">
-            Enter the Void
+            Access Mainframe
           </span>
         </motion.div>
       </motion.div>
 
-      {/* Decorative Corner UI */}
       <div className="absolute bottom-10 left-10 flex items-center gap-4 opacity-20 font-mono text-[8px]">
         <Cpu size={14} />
-        <span>STATUS // UNTETHERED</span>
+        <span>GUEST_SESSION // ACTIVE</span>
       </div>
     </motion.div>
   );
 };
 
-// --- MAIN PAGE COMPONENT (STABLE) ---
+// --- MAIN PAGE COMPONENT ---
 const MainPage = ({
   lanyard,
   time,
@@ -112,8 +107,8 @@ const MainPage = ({
   bgTextY,
   activeColor,
   status,
+  cardRef,
 }) => {
-  const cardRef = useRef(null);
   const isPlaying = !!lanyard.spotify;
 
   const projects = [
@@ -287,7 +282,7 @@ const MainPage = ({
                   </motion.div>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-green-500 mb-1 flex items-center gap-1">
+                  <p className="text-[12px] font-black uppercase tracking-widest text-green-500 mb-1 flex items-center gap-1">
                     <div
                       className={`w-1.5 h-1.5 rounded-full ${isPlaying ? "bg-green-500 animate-pulse" : "bg-white/10"}`}
                     />
@@ -343,6 +338,7 @@ export default function App() {
   const [hasEntered, setHasEntered] = useState(false);
   const [lanyard, setLanyard] = useState(null);
   const [time, setTime] = useState(new Date().toLocaleTimeString());
+  const mainCardRef = useRef(null);
 
   const cursorX = useSpring(0, { stiffness: 600, damping: 25 });
   const cursorY = useSpring(0, { stiffness: 600, damping: 25 });
@@ -374,15 +370,15 @@ export default function App() {
     const handleMouse = (e) => {
       cursorX.set(e.clientX);
       cursorY.set(e.clientY);
-      const rect = document
-        .querySelector('[ref="cardRef"]')
-        ?.getBoundingClientRect();
-      if (rect) {
+
+      // Fixed Tilt Logic using the ref passed to MainPage
+      if (mainCardRef.current) {
+        const rect = mainCardRef.current.getBoundingClientRect();
         const isNear =
-          e.clientX >= rect.left - 50 &&
-          e.clientX <= rect.right + 50 &&
-          e.clientY >= rect.top - 50 &&
-          e.clientY <= rect.bottom + 50;
+          e.clientX >= rect.left - 100 &&
+          e.clientX <= rect.right + 100 &&
+          e.clientY >= rect.top - 100 &&
+          e.clientY <= rect.bottom + 100;
         if (isNear) {
           cardRotateX.set((e.clientY - (rect.top + rect.height / 2)) / 20);
           cardRotateY.set(-(e.clientX - (rect.left + rect.width / 2)) / 20);
@@ -432,6 +428,7 @@ export default function App() {
           bgTextY={bgTextY}
           activeColor={activeColor}
           status={status}
+          cardRef={mainCardRef}
         />
       )}
     </AnimatePresence>
