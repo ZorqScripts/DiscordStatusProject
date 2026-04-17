@@ -33,6 +33,11 @@ const projects = [
     desc: "Minecraft-to-Discord relay bridges and live data fetching.",
     icon: <Share2 size={16} />,
   },
+  {
+    name: "Web Infrastructure",
+    desc: "High-availability web hosting and frontend deployment.",
+    icon: <Globe size={20} />,
+  },
 ];
 
 export default function App() {
@@ -40,19 +45,20 @@ export default function App() {
   const [time, setTime] = useState(new Date().toLocaleTimeString());
   const cardRef = useRef(null);
 
-  // High-performance springs
-  const cursorX = useSpring(0, { stiffness: 400, damping: 30 });
-  const cursorY = useSpring(0, { stiffness: 400, damping: 30 });
-  const cardX = useSpring(0, { stiffness: 100, damping: 30 });
-  const cardY = useSpring(0, { stiffness: 100, damping: 30 });
+  // Fast Cursor for Responsiveness
+  const cursorX = useSpring(0, { stiffness: 600, damping: 25 });
+  const cursorY = useSpring(0, { stiffness: 600, damping: 25 });
 
-  // Rotation for 3D effect
-  const rotateX = useTransform(cardY, [-0.5, 0.5], [-20, 20]);
-  const rotateY = useTransform(cardX, [-0.5, 0.5], [20, -20]);
+  // Tilt Settings
+  const cardX = useSpring(0, { stiffness: 80, damping: 40 });
+  const cardY = useSpring(0, { stiffness: 80, damping: 40 });
 
-  // Background parallax
-  const bgTextX = useTransform(cursorX, [0, 1920], [30, -30]);
-  const bgTextY = useTransform(cursorY, [0, 1080], [30, -30]);
+  const rotateX = useTransform(cardY, [-0.5, 0.5], [-15, 15]);
+  const rotateY = useTransform(cardX, [-0.5, 0.5], [15, -15]);
+
+  // BACKGROUND PARALLAX: Text subtlely moves inverted to the cursor
+  const bgTextX = useTransform(cursorX, [0, window.innerWidth], [20, -20]);
+  const bgTextY = useTransform(cursorY, [0, window.innerHeight], [20, -20]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -63,28 +69,58 @@ export default function App() {
         const json = await res.json();
         if (json.success) setLanyard(json.data);
       } catch (err) {
-        console.error("Lanyard Failed");
+        console.error("Lanyard Failed:", err);
       }
     };
+
     fetchData();
-    const t = setInterval(() => setTime(new Date().toLocaleTimeString()), 1000);
-    const handleMouse = (e) => {
+    const dataInterval = setInterval(fetchData, 30000);
+    const timeInterval = setInterval(
+      () => setTime(new Date().toLocaleTimeString()),
+      1000,
+    );
+
+    const handleGlobalMouse = (e) => {
       cursorX.set(e.clientX);
       cursorY.set(e.clientY);
+
       if (cardRef.current) {
         const rect = cardRef.current.getBoundingClientRect();
-        cardX.set((e.clientX - rect.left) / rect.width - 0.5);
-        cardY.set((e.clientY - rect.top) / rect.height - 0.5);
+        const buffer = 150;
+        const isInside =
+          e.clientX >= rect.left - buffer &&
+          e.clientX <= rect.right + buffer &&
+          e.clientY >= rect.top - buffer &&
+          e.clientY <= rect.bottom + buffer;
+
+        if (isInside) {
+          const relX = (e.clientX - rect.left) / rect.width - 0.5;
+          const relY = (e.clientY - rect.top) / rect.height - 0.5;
+          cardX.set(relX);
+          cardY.set(relY);
+        } else {
+          cardX.set(0);
+          cardY.set(0);
+        }
       }
     };
-    window.addEventListener("mousemove", handleMouse);
-    return () => {
-      window.removeEventListener("mousemove", handleMouse);
-      clearInterval(t);
-    };
-  }, []);
 
-  if (!lanyard) return <div className="min-h-screen bg-[#050505]" />;
+    window.addEventListener("mousemove", handleGlobalMouse);
+    return () => {
+      clearInterval(dataInterval);
+      clearInterval(timeInterval);
+      window.removeEventListener("mousemove", handleGlobalMouse);
+    };
+  }, [cardX, cardY, cursorX, cursorY]);
+
+  if (!lanyard)
+    return (
+      <div className="min-h-screen bg-[#08080c] flex items-center justify-center">
+        <div className="text-white/30 font-mono animate-pulse uppercase tracking-[0.4em] text-[10px]">
+          initializing_core...
+        </div>
+      </div>
+    );
 
   const status = lanyard.discord_status;
   const statusColors = {
@@ -93,41 +129,23 @@ export default function App() {
     idle: "#f59e0b",
     offline: "#64748b",
   };
-  const activeColor = statusColors[status] || statusColors.offline;
+  const activeStatusColor = statusColors[status] || statusColors.offline;
 
   return (
-    <div className="relative min-h-screen bg-[#050505] text-white selection:bg-white/10 overflow-hidden font-sans">
-      {/* 1. DYNAMIC BACKGROUND GLOW */}
+    <div className="relative min-h-screen bg-[#08080c] overflow-hidden selection:bg-white/10">
+      {/* 1. Moving Glow Orb (Behind Glass, Behind Text) */}
       <motion.div
-        className="fixed top-0 left-0 w-[600px] h-[600px] rounded-full blur-[120px] opacity-[0.15] pointer-events-none z-0"
+        className="fixed top-0 left-0 w-[550px] h-[550px] rounded-full blur-[130px] opacity-[0.22] pointer-events-none z-0"
         style={{
           x: cursorX,
           y: cursorY,
           translateX: "-50%",
           translateY: "-50%",
-          backgroundColor: activeColor,
+          backgroundColor: activeStatusColor,
         }}
       />
 
-      {/* 2. FLOATING GLASS SHARDS (The 3D catchiness) */}
-      {[...Array(5)].map((_, i) => (
-        <motion.div
-          key={i}
-          animate={{ y: [0, -20, 0], rotate: [0, 5, 0] }}
-          transition={{ duration: 5 + i, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl pointer-events-none"
-          style={{
-            width: 100 + i * 20,
-            height: 100 + i * 20,
-            top: `${20 * i}%`,
-            left: `${15 * i}%`,
-            opacity: 0.1,
-            zIndex: 1,
-          }}
-        />
-      ))}
-
-      {/* 3. PARALLAX OUTLINE TEXT */}
+      {/* 2. RESPONSIVE BACKGROUND TITLE: Big, Bold, Parallax Text */}
       <motion.div
         style={{
           x: bgTextX,
@@ -135,20 +153,17 @@ export default function App() {
           translateX: "-50%",
           translateY: "-50%",
         }}
-        className="fixed top-1/2 left-1/2 z-0 opacity-20 pointer-events-none"
+        className="fixed top-1/2 left-1/2 z-1 pointer-events-none"
       >
         <h1
-          className="font-black tracking-tighter select-none uppercase text-transparent"
-          style={{
-            fontSize: "20vw",
-            WebkitTextStroke: "2px rgba(255,255,255,0.2)",
-          }}
+          className="font-sans font-black tracking-[-0.08em] text-zinc-900 leading-none"
+          style={{ fontSize: "28vw" }}
         >
           ZXRQI
         </h1>
       </motion.div>
 
-      {/* 4. SOLID INVERTING CURSOR */}
+      {/* 3. SOLID RED INVERTING CURSOR */}
       <motion.div
         className="fixed top-0 left-0 w-8 h-8 rounded-full pointer-events-none z-[9999] bg-red-600 mix-blend-difference"
         style={{
@@ -159,123 +174,163 @@ export default function App() {
         }}
       />
 
-      <div className="min-h-screen relative z-10 flex flex-col items-center justify-center p-6 gap-8">
-        <div className="flex flex-col lg:flex-row items-center gap-12 w-full max-w-6xl">
-          {/* THE 3D CARD */}
-          <motion.div
-            ref={cardRef}
-            style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-            className="w-full max-w-[380px] bg-white/[0.03] border border-white/10 backdrop-blur-3xl p-10 rounded-[3rem] shadow-[0_50px_100px_rgba(0,0,0,0.8)] relative group"
-          >
-            {/* Inner Glare Effect */}
-            <div className="absolute inset-0 rounded-[3rem] bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-
-            <div
-              style={{ transform: "translateZ(100px)" }}
-              className="relative mb-8"
+      {/* Main Content Layer */}
+      <div className="min-h-screen text-white/90 font-sans flex items-center justify-center p-4 lg:p-12 z-10 relative">
+        <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Main Card */}
+          <div className="lg:col-span-4 flex justify-center">
+            <motion.div
+              ref={cardRef}
+              style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+              className="w-full max-w-[360px] bg-white/[0.03] border border-white/10 backdrop-blur-[35px] p-8 rounded-[2.5rem] text-center shadow-[0_30px_100px_rgba(0,0,0,0.6)]"
             >
-              <img
-                src={`https://cdn.discordapp.com/avatars/${lanyard.discord_user.id}/${lanyard.discord_user.avatar}.png?size=512`}
-                className="w-28 h-28 rounded-full border-2 border-white/10 mx-auto shadow-2xl"
-              />
               <div
-                className="absolute bottom-2 right-[35%] w-6 h-6 rounded-full border-4 border-[#050505] shadow-lg"
-                style={{ backgroundColor: activeColor }}
-              />
-            </div>
+                className="relative inline-block mb-6"
+                style={{ transform: "translateZ(80px)" }}
+              >
+                <img
+                  src={`https://cdn.discordapp.com/avatars/${lanyard.discord_user.id}/${lanyard.discord_user.avatar}.png?size=512`}
+                  className="relative w-28 h-28 rounded-full ring-2 ring-white/10 bg-black/20 object-cover z-10 shadow-2xl"
+                  alt="avatar"
+                />
+                <div
+                  className="absolute bottom-2 right-2 w-6 h-6 rounded-full border-2 border-[#08080c] z-30 shadow-lg"
+                  style={{ backgroundColor: activeStatusColor }}
+                ></div>
+              </div>
 
-            <div style={{ transform: "translateZ(60px)" }}>
-              <h1 className="text-4xl font-black text-center uppercase tracking-tighter italic leading-none">
-                {lanyard.discord_user.global_name}
+              <h1
+                style={{ transform: "translateZ(50px)" }}
+                className="text-3xl font-black tracking-tighter uppercase text-white leading-none mb-1"
+              >
+                {lanyard.discord_user.global_name || "zxrqi"}
               </h1>
               <p
-                className="text-center font-mono text-[10px] tracking-[0.5em] mt-3 uppercase font-bold"
-                style={{ color: activeColor }}
+                style={{
+                  transform: "translateZ(40px)",
+                  color: activeStatusColor,
+                }}
+                className="font-mono text-[9px] tracking-[0.4em] mb-8 uppercase font-bold"
               >
-                {status} Secure_Node
+                {status} Node Active
               </p>
-            </div>
 
-            <div
-              style={{ transform: "translateZ(40px)" }}
-              className="mt-10 space-y-4"
-            >
-              <div className="bg-white/5 p-4 rounded-2xl border border-white/5 flex justify-between items-center">
-                <span className="text-[10px] font-black uppercase opacity-30">
-                  Status
-                </span>
-                <span className="text-xs font-medium">
-                  {lanyard.activities?.find((a) => a.type === 4)?.state ||
-                    "Scanning..."}
-                </span>
-              </div>
-              <div className="bg-white/5 p-4 rounded-2xl border border-white/5 flex justify-between items-center">
-                <span className="text-[10px] font-black uppercase opacity-30">
-                  Local Time
-                </span>
-                <span className="text-xs font-mono">{time}</span>
-              </div>
-            </div>
-
-            <button
-              style={{
-                transform: "translateZ(80px)",
-                backgroundColor: activeColor,
-              }}
-              className="w-full mt-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl hover:brightness-125 transition-all active:scale-95"
-            >
-              Contact Profile
-            </button>
-          </motion.div>
-
-          {/* PROJECT TILES */}
-          <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-            {projects.map((p, i) => (
               <div
-                key={i}
-                className="bg-white/[0.02] border border-white/5 p-8 rounded-3xl backdrop-blur-xl hover:bg-white/[0.06] transition-all group shadow-xl"
+                className="space-y-3 mb-8"
+                style={{ transform: "translateZ(30px)" }}
               >
-                <div
-                  style={{ color: activeColor }}
-                  className="mb-4 transition-transform group-hover:scale-110"
-                >
-                  {p.icon}
-                </div>
-                <h3 className="font-bold text-lg">{p.name}</h3>
-                <p className="text-[11px] text-white/40 mt-2 leading-relaxed">
-                  {p.desc}
-                </p>
+                <ActivityRow
+                  label="Process"
+                  value={
+                    lanyard.activities?.find((a) => a.type === 4)?.state ||
+                    "Scanning..."
+                  }
+                />
+                <ActivityRow label="System Time" value={time} />
               </div>
-            ))}
-            {/* Spotify-style Live Card */}
-            <div className="md:col-span-2 bg-white/[0.02] border border-white/5 p-6 rounded-3xl backdrop-blur-xl flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center animate-pulse">
-                  <Disc size={20} style={{ color: activeColor }} />
-                </div>
-                <div>
-                  <p className="text-[10px] uppercase font-black opacity-30 tracking-widest">
-                    Signal Source
+
+              <button
+                onClick={() =>
+                  window.open(`https://discord.com/users/${DISCORD_ID}`)
+                }
+                style={{
+                  backgroundColor: activeStatusColor,
+                  transform: "translateZ(60px)",
+                }}
+                className="w-full py-4 rounded-2xl text-[10px] font-black tracking-[0.2em] uppercase flex items-center justify-center gap-2 hover:brightness-110 active:scale-95 transition-all shadow-xl text-white"
+              >
+                Access Profile <ExternalLink size={14} />
+              </button>
+            </motion.div>
+          </div>
+
+          {/* Info Panels */}
+          <div className="lg:col-span-8 flex flex-col gap-6 relative">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {projects.map((proj, i) => (
+                <div
+                  key={i}
+                  className="bg-white/[0.02] border border-white/5 p-6 rounded-3xl backdrop-blur-md hover:bg-white/[0.05] transition-all shadow-xl group"
+                >
+                  <div
+                    className="mb-4 group-hover:text-white"
+                    style={{ color: activeStatusColor }}
+                  >
+                    {proj.icon}
+                  </div>
+                  <h3 className="text-lg font-bold mb-1.5">{proj.name}</h3>
+                  <p className="text-[11px] text-white/40 leading-relaxed">
+                    {proj.desc}
                   </p>
-                  <p className="text-sm font-medium">
+                </div>
+              ))}
+              <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-6 backdrop-blur-md flex flex-col justify-between shadow-xl">
+                <div>
+                  <div
+                    className="flex items-center gap-2 text-[10px] font-black uppercase mb-3"
+                    style={{ color: activeStatusColor }}
+                  >
+                    <Disc
+                      className={lanyard.spotify ? "animate-spin-slow" : ""}
+                      size={14}
+                    />{" "}
+                    {lanyard.spotify ? "Live Signal" : "System Standby"}
+                  </div>
+                  <p className="text-sm text-white/60 font-medium leading-snug">
                     {lanyard.spotify
                       ? lanyard.spotify.song
-                      : "Ambient System Noise"}
+                      : "Optimizing system resources."}
                   </p>
                 </div>
+                <div className="mt-6 h-1 w-full bg-white/10 rounded-full overflow-hidden">
+                  <motion.div
+                    animate={{ width: ["10%", "90%", "10%"] }}
+                    transition={{ duration: 8, repeat: Infinity }}
+                    className="h-full"
+                    style={{ backgroundColor: activeStatusColor }}
+                  />
+                </div>
               </div>
-              <div className="w-32 h-1 bg-white/5 rounded-full overflow-hidden">
-                <motion.div
-                  animate={{ x: ["-100%", "100%"] }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                  className="w-full h-full"
-                  style={{ backgroundColor: activeColor }}
-                />
-              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <StatBox
+                label="Status"
+                value={status.toUpperCase()}
+                color={activeStatusColor}
+              />
+              <StatBox label="Latency" value="1.9ms" />
+              <StatBox label="Protocol" value="V3.7_DL" />
             </div>
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function ActivityRow({ label, value }) {
+  return (
+    <div className="bg-white/[0.03] p-4 rounded-2xl border border-white/5 flex flex-col text-left">
+      <p className="text-[9px] text-white/20 font-black uppercase mb-1">
+        {label}
+      </p>
+      <p className="text-sm font-medium truncate text-white/80">{value}</p>
+    </div>
+  );
+}
+
+function StatBox({ label, value, color }) {
+  return (
+    <div className="text-center p-4 rounded-2xl bg-white/[0.02] border border-white/5 backdrop-blur-sm">
+      <p className="text-[10px] text-white/20 font-black uppercase mb-1">
+        {label}
+      </p>
+      <p
+        className="text-[11px] font-mono font-bold"
+        style={{ color: color || "white" }}
+      >
+        {value}
+      </p>
     </div>
   );
 }
