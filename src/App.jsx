@@ -13,47 +13,93 @@ import {
   Server,
   Share2,
   Disc,
-  MousePointer2,
+  ShieldCheck,
+  Cpu,
 } from "lucide-react";
 
 const DISCORD_ID = "900965149496737874";
 
-// --- ENTRY SCREEN COMPONENT ---
+// --- AESTHETIC ENTRY SCREEN ---
 const EntryScreen = ({ onEnter, activeColor }) => {
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const handleMove = (e) => setMousePos({ x: e.clientX, y: e.clientY });
+    window.addEventListener("mousemove", handleMove);
+    return () => window.removeEventListener("mousemove", handleMove);
+  }, []);
+
   return (
     <motion.div
       initial={{ opacity: 1 }}
-      exit={{ opacity: 0, filter: "blur(20px)" }}
-      transition={{ duration: 0.8, ease: "easeInOut" }}
+      exit={{ opacity: 0, scale: 1.1, filter: "blur(40px)" }}
+      transition={{ duration: 1.2, ease: [0.43, 0.13, 0.23, 0.96] }}
       onClick={onEnter}
-      className="fixed inset-0 z-[10000] flex flex-col items-center justify-center bg-[#08080c]/80 backdrop-blur-3xl cursor-pointer"
+      className="fixed inset-0 z-[10000] flex flex-col items-center justify-center bg-[#050508] cursor-none overflow-hidden"
     >
+      {/* Aesthetic Background Elements */}
+      <div
+        className="absolute inset-0 opacity-20"
+        style={{
+          backgroundImage: `radial-gradient(circle at ${mousePos.x}px ${mousePos.y}px, ${activeColor}33 0%, transparent 50%)`,
+        }}
+      />
+      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] brightness-100 pointer-events-none" />
+
+      {/* Branded Entry Cursor */}
       <motion.div
-        animate={{ y: [0, -10, 0] }}
-        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-        className="flex flex-col items-center"
+        className="fixed top-0 left-0 w-4 h-4 rounded-full pointer-events-none z-[10001]"
+        animate={{ x: mousePos.x - 8, y: mousePos.y - 8 }}
+        transition={{ type: "spring", stiffness: 1000, damping: 50 }}
+        style={{
+          backgroundColor: activeColor,
+          boxShadow: `0 0 20px ${activeColor}`,
+        }}
+      />
+
+      {/* Greeting Content */}
+      <motion.div
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.2, duration: 0.8 }}
+        className="text-center relative z-10"
       >
-        <div
-          className="w-16 h-16 rounded-full flex items-center justify-center mb-6 shadow-2xl"
-          style={{
-            backgroundColor: activeColor,
-            boxShadow: `0 0 30px ${activeColor}44`,
-          }}
-        >
-          <MousePointer2 className="text-white" size={28} />
+        <div className="flex items-center justify-center gap-3 mb-6">
+          <div className="h-[1px] w-12 bg-gradient-to-r from-transparent to-white/20" />
+          <ShieldCheck size={16} className="text-white/40" />
+          <div className="h-[1px] w-12 bg-gradient-to-l from-transparent to-white/20" />
         </div>
-        <h2 className="text-white font-black uppercase tracking-[0.4em] text-sm opacity-80">
-          Establish Connection
-        </h2>
-        <p className="text-white/20 text-[10px] font-bold mt-2 uppercase tracking-widest">
-          Click anywhere to initialize
+
+        <h1 className="text-5xl md:text-7xl font-black italic tracking-tighter text-white mb-2 selection:bg-none">
+          HELLO <span style={{ color: activeColor }}>WORLD.</span>
+        </h1>
+
+        <p className="font-mono text-[10px] tracking-[0.5em] uppercase text-white/30 mb-12">
+          Initialising Identity Protocol{" "}
+          <span className="animate-pulse">_</span>
         </p>
+
+        <motion.div
+          whileHover={{ scale: 1.05 }}
+          className="group relative px-8 py-4 rounded-full border border-white/5 bg-white/[0.02] backdrop-blur-md overflow-hidden transition-all"
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+          <span className="relative text-[11px] font-black uppercase tracking-[0.3em] text-white/60 group-hover:text-white transition-colors">
+            Tap to Authenticate
+          </span>
+        </motion.div>
       </motion.div>
+
+      {/* Decorative Corner UI */}
+      <div className="absolute bottom-10 left-10 flex items-center gap-4 opacity-20 font-mono text-[8px]">
+        <Cpu size={14} />
+        <span>SYSTEM_READY // ASIA_NODE</span>
+      </div>
     </motion.div>
   );
 };
 
-// --- YOUR MAIN PAGE (UNTOUCHED) ---
+// --- MAIN PAGE COMPONENT (REMAINS STABLE) ---
 const MainPage = ({
   lanyard,
   time,
@@ -98,7 +144,12 @@ const MainPage = ({
   ];
 
   return (
-    <div className="relative min-h-screen bg-[#08080c] overflow-hidden text-white font-sans selection:bg-white/10">
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 1, ease: "easeOut" }}
+      className="relative min-h-screen bg-[#08080c] overflow-hidden text-white font-sans selection:bg-white/10"
+    >
       <motion.div
         className="fixed top-0 left-0 w-[400px] h-[400px] rounded-full blur-[100px] opacity-[0.15] pointer-events-none z-0"
         style={{
@@ -160,8 +211,8 @@ const MainPage = ({
                   style={{ backgroundColor: activeColor }}
                 />
               </div>
-              <h1 className="text-3xl font-black tracking-tighter mb-1">
-                ZORQ
+              <h1 className="text-3xl font-black tracking-tighter mb-1 uppercase">
+                Zorq
               </h1>
               <p className="text-[9px] font-black uppercase tracking-[0.2em] text-green-500/80 mb-8">
                 Full-Stack Architect
@@ -187,7 +238,6 @@ const MainPage = ({
                 </div>
               </div>
             </div>
-
             <button
               style={{ backgroundColor: activeColor }}
               className="w-full mt-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:brightness-110 shadow-xl transition-all"
@@ -228,7 +278,6 @@ const MainPage = ({
                       <img
                         src={lanyard.spotify.album_art_url}
                         className="w-full h-full object-cover opacity-60"
-                        alt="album art"
                       />
                     ) : (
                       <Disc size={16} className="opacity-20 text-white" />
@@ -248,7 +297,6 @@ const MainPage = ({
                   </h3>
                   <div className="mt-3 h-0.5 w-full bg-white/5 rounded-full overflow-hidden">
                     <motion.div
-                      initial={{ width: 0 }}
                       animate={{ width: isPlaying ? "70%" : "0%" }}
                       className="h-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]"
                     />
@@ -285,7 +333,7 @@ const MainPage = ({
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
@@ -325,7 +373,6 @@ export default function App() {
     const handleMouse = (e) => {
       cursorX.set(e.clientX);
       cursorY.set(e.clientY);
-      // Logic for card tilt proximity (kept in the main loop to ensure it feels smooth on enter)
       const rect = document
         .querySelector('[ref="cardRef"]')
         ?.getBoundingClientRect();
