@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, useSpring, useTransform } from "framer-motion";
 import {
-  Terminal,
-  Clock,
   ExternalLink,
   Globe,
   Bot,
@@ -47,7 +45,6 @@ export default function App() {
   const [time, setTime] = useState(new Date().toLocaleTimeString());
   const cardRef = useRef(null);
 
-  // Smooth Follow Cursor
   const cursorX = useSpring(0, { stiffness: 250, damping: 25 });
   const cursorY = useSpring(0, { stiffness: 250, damping: 25 });
 
@@ -88,7 +85,7 @@ export default function App() {
 
       if (cardRef.current) {
         const rect = cardRef.current.getBoundingClientRect();
-        const buffer = 100; // Activation distance
+        const buffer = 100;
         const isInside =
           e.clientX >= rect.left - buffer &&
           e.clientX <= rect.right + buffer &&
@@ -125,16 +122,14 @@ export default function App() {
     );
 
   const status = lanyard.discord_status;
-
-  // NEW DEFINITIVE ACCENT COLOR (changed to bold red #ef4444 for primary contrast on light mode)
-  const accentColor = "#ef4444";
+  const accentColor = "#ef4444"; // Bold Red for contrast
 
   return (
-    // DEPTH UPDATE 1: LIGHTER BACKGROUND COLOR (changed from #18181b to #e2e8f0 silver-white)
+    // LIGHTER SILVER-WHITE BACKGROUND
     <div className="relative min-h-screen bg-[#e2e8f0] overflow-hidden selection:bg-red-500/30">
-      {/* Background Glow (slightly subtle on light mode) */}
+      {/* Subtle Background Glow */}
       <motion.div
-        className="fixed top-0 left-0 w-[700px] h-[700px] rounded-full blur-[180px] opacity-[0.15] pointer-events-none z-0"
+        className="fixed top-0 left-0 w-[700px] h-[700px] rounded-full blur-[180px] opacity-[0.12] pointer-events-none z-0"
         style={{
           x: glowX,
           y: glowY,
@@ -144,28 +139,14 @@ export default function App() {
         }}
       />
 
-      {/* Custom Mouse Follower */}
-      <motion.div
-        className="custom-cursor fixed top-0 left-0 z-[9999]"
-        style={{
-          x: cursorX,
-          y: cursorY,
-          translateX: "-50%",
-          translateY: "-50%",
-        }}
-      />
-
-      {/* DEPTH UPDATE 2: SWAPPED TEXT TO DARK GRAY (changed text-white to text-gray-900) */}
       <div className="min-h-screen text-gray-900 font-sans flex items-center justify-center p-4 lg:p-12 z-10 relative">
         <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Main Profile Card */}
+          {/* Main Profile Card with Heavy Shadow */}
           <div className="lg:col-span-4 flex justify-center">
             <motion.div
               ref={cardRef}
               style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-              // DEPTH UPDATE 3: ADDED HEAVY, BROAD SHADOW (changed shadow color and increased blur)
-              // We are making the card white, the shadow dark, for contrast on the silver background.
-              className="w-full max-w-[360px] bg-white border border-black/5 backdrop-blur-3xl p-8 rounded-[2.5rem] text-center shadow-[0_40px_100px_rgba(0,0,0,0.15)]"
+              className="w-full max-w-[360px] bg-white border border-black/5 backdrop-blur-3xl p-8 rounded-[2.5rem] text-center shadow-[0_45px_100px_rgba(0,0,0,0.18)]"
             >
               <div
                 className="relative inline-block mb-6"
@@ -224,25 +205,24 @@ export default function App() {
             </motion.div>
           </div>
 
-          {/* Secondary Info Grid */}
+          {/* Side Panels */}
           <div className="lg:col-span-8 flex flex-col gap-6">
-            {/* Project elements also get shadows and dark text */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {projects.map((proj, i) => (
                 <div
                   key={i}
-                  className="bg-white border border-black/5 p-6 rounded-3xl backdrop-blur-xl group hover:bg-black/[0.04] transition-all shadow-[0_20px_60px_rgba(0,0,0,0.08)]"
+                  className="bg-white border border-black/5 p-6 rounded-3xl backdrop-blur-xl group hover:bg-black/[0.04] transition-all shadow-[0_20px_50px_rgba(0,0,0,0.06)]"
                 >
                   <div className={`mb-4`} style={{ color: accentColor }}>
                     {proj.icon}
                   </div>
                   <h3 className="text-lg font-bold mb-1.5">{proj.name}</h3>
-                  <p className="text-[11px] text-gray-700 leading-relaxed">
+                  <p className="text-[11px] text-gray-600 leading-relaxed">
                     {proj.desc}
                   </p>
                 </div>
               ))}
-              <div className="bg-white border border-black/5 rounded-3xl p-6 backdrop-blur-xl flex flex-col justify-between shadow-[0_20px_60px_rgba(0,0,0,0.08)]">
+              <div className="bg-white border border-black/5 rounded-3xl p-6 backdrop-blur-xl flex flex-col justify-between shadow-[0_20px_50px_rgba(0,0,0,0.06)]">
                 <div>
                   <div
                     className="flex items-center gap-2 text-[10px] font-black uppercase mb-3"
@@ -270,7 +250,6 @@ export default function App() {
                 </div>
               </div>
             </div>
-            {/* Stat boxes get a lighter shadow */}
             <div className="grid grid-cols-3 gap-4">
               <StatBox label="Signal" value={status.toUpperCase()} />
               <StatBox label="Node" value="Asia_DL" />
@@ -285,8 +264,8 @@ export default function App() {
 
 function ActivityRow({ label, value }) {
   return (
-    <div className="bg-black/[0.02] p-4 rounded-2xl border border-black/5 flex flex-col text-left">
-      <p className="text-[9px] text-gray-700 font-black uppercase mb-1">
+    <div className="bg-black/[0.03] p-4 rounded-2xl border border-black/5 flex flex-col text-left">
+      <p className="text-[9px] text-gray-600 font-black uppercase mb-1">
         {label}
       </p>
       <p className="text-sm font-medium truncate text-gray-900">{value}</p>
@@ -296,8 +275,8 @@ function ActivityRow({ label, value }) {
 
 function StatBox({ label, value }) {
   return (
-    <div className="text-center p-4 rounded-2xl bg-white border border-black/5 backdrop-blur-md shadow-[0_10px_40px_rgba(0,0,0,0.05)]">
-      <p className="text-[10px] text-gray-700 font-black uppercase mb-1 tracking-tighter">
+    <div className="text-center p-4 rounded-2xl bg-white border border-black/5 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
+      <p className="text-[10px] text-gray-500 font-black uppercase mb-1 tracking-tighter">
         {label}
       </p>
       <p className="text-[11px] font-mono font-bold uppercase text-gray-950">
