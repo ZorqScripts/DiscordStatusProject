@@ -145,7 +145,7 @@ export default function App() {
         }}
       />
 
-      {/* 2. RESPONSIVE BACKGROUND TITLE: Big, Bold, Parallax Text */}
+      {/* 2. RESPONSIVE BACKGROUND TITLE: Updated to ZORQ and Inverting */}
       <motion.div
         style={{
           x: bgTextX,
@@ -153,24 +153,25 @@ export default function App() {
           translateX: "-50%",
           translateY: "-50%",
         }}
-        className="fixed top-1/2 left-1/2 z-1 pointer-events-none"
+        className="fixed top-1/2 left-1/2 z-1 pointer-events-none mix-blend-difference"
       >
         <h1
-          className="font-sans font-black tracking-[-0.08em] text-zinc-900 leading-none"
+          className="font-sans font-black tracking-[-0.08em] text-white leading-none"
           style={{ fontSize: "28vw" }}
         >
-          ZXRQI
+          ZORQ
         </h1>
       </motion.div>
 
-      {/* 3. SOLID RED INVERTING CURSOR */}
+      {/* 3. SOLID DYNAMIC INVERTING CURSOR: Color now matches active status */}
       <motion.div
-        className="fixed top-0 left-0 w-8 h-8 rounded-full pointer-events-none z-[9999] bg-red-600 mix-blend-difference"
+        className="fixed top-0 left-0 w-8 h-8 rounded-full pointer-events-none z-[9999] mix-blend-difference"
         style={{
           x: cursorX,
           y: cursorY,
           translateX: "-50%",
           translateY: "-50%",
+          backgroundColor: activeStatusColor,
         }}
       />
 
