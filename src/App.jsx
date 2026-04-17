@@ -21,15 +21,7 @@ import {
 const DISCORD_ID = "900965149496737874";
 
 // --- AESTHETIC ENTRY SCREEN ---
-const EntryScreen = ({ onEnter, activeColor }) => {
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-
-  useEffect(() => {
-    const handleMove = (e) => setMousePos({ x: e.clientX, y: e.clientY });
-    window.addEventListener("mousemove", handleMove);
-    return () => window.removeEventListener("mousemove", handleMove);
-  }, []);
-
+const EntryScreen = ({ onEnter, activeColor, cursorX, cursorY }) => {
   return (
     <motion.div
       initial={{ opacity: 1 }}
@@ -41,18 +33,20 @@ const EntryScreen = ({ onEnter, activeColor }) => {
       <div
         className="absolute inset-0 opacity-20"
         style={{
-          backgroundImage: `radial-gradient(circle at ${mousePos.x}px ${mousePos.y}px, ${activeColor}33 0%, transparent 50%)`,
+          backgroundImage: `radial-gradient(circle at 50% 50%, ${activeColor}33 0%, transparent 50%)`,
         }}
       />
       <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] brightness-100 pointer-events-none" />
 
+      {/* INVERTING CURSOR */}
       <motion.div
-        className="fixed top-0 left-0 w-4 h-4 rounded-full pointer-events-none z-[10001]"
-        animate={{ x: mousePos.x - 8, y: mousePos.y - 8 }}
-        transition={{ type: "spring", stiffness: 1000, damping: 50 }}
+        className="fixed top-0 left-0 w-8 h-8 rounded-full pointer-events-none z-[10001] mix-blend-difference shadow-[0_0_20px_rgba(255,255,255,0.3)]"
         style={{
+          x: cursorX,
+          y: cursorY,
+          translateX: "-50%",
+          translateY: "-50%",
           backgroundColor: activeColor,
-          boxShadow: `0 0 20px ${activeColor}`,
         }}
       />
 
@@ -114,7 +108,6 @@ const MainPage = ({
   status,
   cardRef,
 }) => {
-  // Robust check for Spotify activity
   const isPlaying = !!lanyard.spotify || lanyard.listening_to_spotify;
 
   const projects = [
@@ -150,7 +143,7 @@ const MainPage = ({
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 1, ease: "easeOut" }}
-      className="relative min-h-screen bg-[#08080c] overflow-hidden text-white font-sans selection:bg-white/10"
+      className="relative min-h-screen bg-[#08080c] overflow-hidden text-white font-sans selection:bg-white/10 cursor-none"
     >
       <motion.div
         className="fixed top-0 left-0 w-[400px] h-[400px] rounded-full blur-[100px] opacity-[0.15] pointer-events-none z-0"
@@ -180,6 +173,7 @@ const MainPage = ({
         </h1>
       </motion.div>
 
+      {/* INVERTING CURSOR */}
       <motion.div
         className="fixed top-0 left-0 w-8 h-8 rounded-full pointer-events-none z-[9999] mix-blend-difference shadow-[0_0_20px_rgba(255,255,255,0.3)]"
         style={{
@@ -222,7 +216,7 @@ const MainPage = ({
 
               <div className="w-full space-y-3 text-left mb-auto">
                 <div className="bg-white/[0.03] border border-white/5 p-4 rounded-2xl w-full">
-                  <p className="text-[9px] opacity-30 font-black uppercase mb-1">
+                  <p className="text-[9px] opacity-60 font-black uppercase mb-1">
                     Process
                   </p>
                   <p className="text-xs font-bold truncate">
@@ -231,7 +225,7 @@ const MainPage = ({
                   </p>
                 </div>
                 <div className="bg-white/[0.03] border border-white/5 p-4 rounded-2xl w-full">
-                  <p className="text-[9px] opacity-30 font-black uppercase mb-1 font-sans">
+                  <p className="text-[9px] opacity-60 font-black uppercase mb-1 font-sans">
                     Clock
                   </p>
                   <p className="text-xs font-bold opacity-80 font-mono">
@@ -311,7 +305,7 @@ const MainPage = ({
 
             <div className="grid grid-cols-3 gap-3">
               <div className="bg-[#0f0f11] border border-white/5 p-3 rounded-xl text-center">
-                <p className="text-[8px] opacity-20 font-black uppercase mb-0.5">
+                <p className="text-[8px] opacity-60 font-black uppercase mb-0.5">
                   Signal
                 </p>
                 <p
@@ -322,13 +316,13 @@ const MainPage = ({
                 </p>
               </div>
               <div className="bg-[#0f0f11] border border-white/5 p-3 rounded-xl text-center">
-                <p className="text-[8px] opacity-20 font-black uppercase mb-0.5">
+                <p className="text-[8px] opacity-60 font-black uppercase mb-0.5">
                   Node
                 </p>
                 <p className="text-[10px] font-bold">ASIA_DL</p>
               </div>
               <div className="bg-[#0f0f11] border border-white/5 p-3 rounded-xl text-center">
-                <p className="text-[8px] opacity-20 font-black uppercase mb-0.5">
+                <p className="text-[8px] opacity-60 font-black uppercase mb-0.5">
                   Relay
                 </p>
                 <p className="text-[10px] font-bold">0.002MS</p>
@@ -369,7 +363,7 @@ export default function App() {
       }
     };
     fetchData();
-    const dInt = setInterval(fetchData, 10000); // Increased frequency to catch Spotify faster
+    const dInt = setInterval(fetchData, 10000);
     const tInt = setInterval(
       () => setTime(new Date().toLocaleTimeString()),
       1000,
@@ -421,6 +415,8 @@ export default function App() {
           key="entry"
           onEnter={() => setHasEntered(true)}
           activeColor={activeColor}
+          cursorX={cursorX}
+          cursorY={cursorY}
         />
       ) : (
         <MainPage
