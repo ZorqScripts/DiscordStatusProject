@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
-import { motion, useSpring, useTransform } from "framer-motion";
+import {
+  motion,
+  AnimatePresence,
+  useSpring,
+  useTransform,
+} from "framer-motion";
 import {
   ExternalLink,
   Globe,
@@ -8,112 +13,92 @@ import {
   Server,
   Share2,
   Disc,
+  MousePointer2,
 } from "lucide-react";
 
 const DISCORD_ID = "900965149496737874";
 
-const projects = [
-  {
-    name: "Discord Automation",
-    desc: "Advanced bot architectures.",
-    icon: <Bot size={18} />,
-  },
-  {
-    name: "Roblox Mechanics",
-    desc: "Optimized movement physics.",
-    icon: <Zap size={18} />,
-  },
-  {
-    name: "Server Architecture",
-    desc: "Environment deployment.",
-    icon: <Server size={18} />,
-  },
-  {
-    name: "Cross-Platform Sync",
-    desc: "Discord relay bridges.",
-    icon: <Share2 size={18} />,
-  },
-  {
-    name: "Web Infrastructure",
-    desc: "High-availability hosting.",
-    icon: <Globe size={18} />,
-  },
-];
+// --- ENTRY SCREEN COMPONENT ---
+const EntryScreen = ({ onEnter, activeColor }) => {
+  return (
+    <motion.div
+      initial={{ opacity: 1 }}
+      exit={{ opacity: 0, filter: "blur(20px)" }}
+      transition={{ duration: 0.8, ease: "easeInOut" }}
+      onClick={onEnter}
+      className="fixed inset-0 z-[10000] flex flex-col items-center justify-center bg-[#08080c]/80 backdrop-blur-3xl cursor-pointer"
+    >
+      <motion.div
+        animate={{ y: [0, -10, 0] }}
+        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        className="flex flex-col items-center"
+      >
+        <div
+          className="w-16 h-16 rounded-full flex items-center justify-center mb-6 shadow-2xl"
+          style={{
+            backgroundColor: activeColor,
+            boxShadow: `0 0 30px ${activeColor}44`,
+          }}
+        >
+          <MousePointer2 className="text-white" size={28} />
+        </div>
+        <h2 className="text-white font-black uppercase tracking-[0.4em] text-sm opacity-80">
+          Establish Connection
+        </h2>
+        <p className="text-white/20 text-[10px] font-bold mt-2 uppercase tracking-widest">
+          Click anywhere to initialize
+        </p>
+      </motion.div>
+    </motion.div>
+  );
+};
 
-export default function App() {
-  const [lanyard, setLanyard] = useState(null);
-  const [time, setTime] = useState(new Date().toLocaleTimeString());
+// --- YOUR MAIN PAGE (UNTOUCHED) ---
+const MainPage = ({
+  lanyard,
+  time,
+  cursorX,
+  cursorY,
+  cardRotateX,
+  cardRotateY,
+  bgTextX,
+  bgTextY,
+  activeColor,
+  status,
+}) => {
   const cardRef = useRef(null);
-
-  const cursorX = useSpring(0, { stiffness: 600, damping: 25 });
-  const cursorY = useSpring(0, { stiffness: 600, damping: 25 });
-  const cardRotateX = useSpring(0, { stiffness: 100, damping: 30 });
-  const cardRotateY = useSpring(0, { stiffness: 100, damping: 30 });
-
-  const bgTextX = useTransform(cursorX, [0, 2000], [20, -20]);
-  const bgTextY = useTransform(cursorY, [0, 1000], [20, -20]);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await fetch(
-          `https://api.lanyard.rest/v1/users/${DISCORD_ID}`,
-        );
-        const json = await res.json();
-        if (json.success) setLanyard(json.data);
-      } catch (err) {
-        console.error("Lanyard Failed");
-      }
-    };
-    fetchData();
-    const dInt = setInterval(fetchData, 30000);
-    const tInt = setInterval(
-      () => setTime(new Date().toLocaleTimeString()),
-      1000,
-    );
-
-    const handleMouse = (e) => {
-      cursorX.set(e.clientX);
-      cursorY.set(e.clientY);
-      if (cardRef.current) {
-        const rect = cardRef.current.getBoundingClientRect();
-        const isNear =
-          e.clientX >= rect.left - 50 &&
-          e.clientX <= rect.right + 50 &&
-          e.clientY >= rect.top - 50 &&
-          e.clientY <= rect.bottom + 50;
-        if (isNear) {
-          cardRotateX.set((e.clientY - (rect.top + rect.height / 2)) / 20);
-          cardRotateY.set(-(e.clientX - (rect.left + rect.width / 2)) / 20);
-        } else {
-          cardRotateX.set(0);
-          cardRotateY.set(0);
-        }
-      }
-    };
-    window.addEventListener("mousemove", handleMouse);
-    return () => {
-      clearInterval(dInt);
-      clearInterval(tInt);
-      window.removeEventListener("mousemove", handleMouse);
-    };
-  }, [cursorX, cursorY, cardRotateX, cardRotateY]);
-
-  if (!lanyard) return <div className="min-h-screen bg-[#08080c]" />;
-
-  const status = lanyard.discord_status;
-  const statusColors = {
-    online: "#22c55e",
-    dnd: "#ef4444",
-    idle: "#f59e0b",
-    offline: "#64748b",
-  };
-  const activeColor = statusColors[status] || statusColors.offline;
   const isPlaying = !!lanyard.spotify;
+
+  const projects = [
+    {
+      name: "Discord Automation",
+      desc: "Advanced bot architectures.",
+      icon: <Bot size={18} />,
+    },
+    {
+      name: "Roblox Mechanics",
+      desc: "Optimized movement physics.",
+      icon: <Zap size={18} />,
+    },
+    {
+      name: "Server Architecture",
+      desc: "Environment deployment.",
+      icon: <Server size={18} />,
+    },
+    {
+      name: "Cross-Platform Sync",
+      desc: "Discord relay bridges.",
+      icon: <Share2 size={18} />,
+    },
+    {
+      name: "Web Infrastructure",
+      desc: "High-availability hosting.",
+      icon: <Globe size={18} />,
+    },
+  ];
 
   return (
     <div className="relative min-h-screen bg-[#08080c] overflow-hidden text-white font-sans selection:bg-white/10">
-      {/* CURSOR GLOW */}
       <motion.div
         className="fixed top-0 left-0 w-[400px] h-[400px] rounded-full blur-[100px] opacity-[0.15] pointer-events-none z-0"
         style={{
@@ -125,7 +110,6 @@ export default function App() {
         }}
       />
 
-      {/* Background Parallax ZORQ */}
       <motion.div
         style={{
           x: bgTextX,
@@ -143,7 +127,6 @@ export default function App() {
         </h1>
       </motion.div>
 
-      {/* DYNAMIC CURSOR */}
       <motion.div
         className="fixed top-0 left-0 w-8 h-8 rounded-full pointer-events-none z-[9999] mix-blend-difference shadow-[0_0_20px_rgba(255,255,255,0.3)]"
         style={{
@@ -157,7 +140,6 @@ export default function App() {
 
       <div className="min-h-screen flex items-center justify-center p-6 z-10 relative">
         <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-          {/* Main Card */}
           <motion.div
             ref={cardRef}
             style={{
@@ -214,7 +196,6 @@ export default function App() {
             </button>
           </motion.div>
 
-          {/* Project & Spotify Grid */}
           <div className="lg:col-span-8 flex flex-col gap-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
               {projects.map((p, i) => (
@@ -232,7 +213,6 @@ export default function App() {
                 </div>
               ))}
 
-              {/* COMPACT SPOTIFY - SPINNING VINYL */}
               <div className="bg-[#0f0f11] border border-white/10 rounded-[2rem] p-5 flex items-center gap-4 relative overflow-hidden group">
                 <div className="relative w-14 h-14 flex-shrink-0">
                   <motion.div
@@ -277,7 +257,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* Status Footer */}
             <div className="grid grid-cols-3 gap-3">
               <div className="bg-[#0f0f11] border border-white/5 p-3 rounded-xl text-center">
                 <p className="text-[8px] opacity-20 font-black uppercase mb-0.5">
@@ -307,5 +286,106 @@ export default function App() {
         </div>
       </div>
     </div>
+  );
+};
+
+// --- APP WRAPPER ---
+export default function App() {
+  const [hasEntered, setHasEntered] = useState(false);
+  const [lanyard, setLanyard] = useState(null);
+  const [time, setTime] = useState(new Date().toLocaleTimeString());
+
+  const cursorX = useSpring(0, { stiffness: 600, damping: 25 });
+  const cursorY = useSpring(0, { stiffness: 600, damping: 25 });
+  const cardRotateX = useSpring(0, { stiffness: 100, damping: 30 });
+  const cardRotateY = useSpring(0, { stiffness: 100, damping: 30 });
+
+  const bgTextX = useTransform(cursorX, [0, 2000], [20, -20]);
+  const bgTextY = useTransform(cursorY, [0, 1000], [20, -20]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await fetch(
+          `https://api.lanyard.rest/v1/users/${DISCORD_ID}`,
+        );
+        const json = await res.json();
+        if (json.success) setLanyard(json.data);
+      } catch (err) {
+        console.error("Lanyard Failed");
+      }
+    };
+    fetchData();
+    const dInt = setInterval(fetchData, 30000);
+    const tInt = setInterval(
+      () => setTime(new Date().toLocaleTimeString()),
+      1000,
+    );
+
+    const handleMouse = (e) => {
+      cursorX.set(e.clientX);
+      cursorY.set(e.clientY);
+      // Logic for card tilt proximity (kept in the main loop to ensure it feels smooth on enter)
+      const rect = document
+        .querySelector('[ref="cardRef"]')
+        ?.getBoundingClientRect();
+      if (rect) {
+        const isNear =
+          e.clientX >= rect.left - 50 &&
+          e.clientX <= rect.right + 50 &&
+          e.clientY >= rect.top - 50 &&
+          e.clientY <= rect.bottom + 50;
+        if (isNear) {
+          cardRotateX.set((e.clientY - (rect.top + rect.height / 2)) / 20);
+          cardRotateY.set(-(e.clientX - (rect.left + rect.width / 2)) / 20);
+        } else {
+          cardRotateX.set(0);
+          cardRotateY.set(0);
+        }
+      }
+    };
+    window.addEventListener("mousemove", handleMouse);
+    return () => {
+      clearInterval(dInt);
+      clearInterval(tInt);
+      window.removeEventListener("mousemove", handleMouse);
+    };
+  }, [cursorX, cursorY, cardRotateX, cardRotateY]);
+
+  if (!lanyard) return <div className="min-h-screen bg-[#08080c]" />;
+
+  const status = lanyard.discord_status;
+  const statusColors = {
+    online: "#22c55e",
+    dnd: "#ef4444",
+    idle: "#f59e0b",
+    offline: "#64748b",
+  };
+  const activeColor = statusColors[status] || statusColors.offline;
+
+  return (
+    <AnimatePresence mode="wait">
+      {!hasEntered ? (
+        <EntryScreen
+          key="entry"
+          onEnter={() => setHasEntered(true)}
+          activeColor={activeColor}
+        />
+      ) : (
+        <MainPage
+          key="main"
+          lanyard={lanyard}
+          time={time}
+          cursorX={cursorX}
+          cursorY={cursorY}
+          cardRotateX={cardRotateX}
+          cardRotateY={cardRotateY}
+          bgTextX={bgTextX}
+          bgTextY={bgTextY}
+          activeColor={activeColor}
+          status={status}
+        />
+      )}
+    </AnimatePresence>
   );
 }
