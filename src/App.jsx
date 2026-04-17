@@ -159,7 +159,7 @@ export default function App() {
           className="font-sans font-black tracking-[-0.08em] text-zinc-900 leading-none"
           style={{ fontSize: "28vw" }}
         >
-          ZXRQI
+          ZORQ
         </h1>
       </motion.div>
 
