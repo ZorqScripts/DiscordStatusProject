@@ -109,7 +109,9 @@ const MainPage = ({
 }) => {
   const isPlaying = !!lanyard.spotify || lanyard.listening_to_spotify;
   const customStatus = lanyard.activities?.find((a) => a.type === 4)?.state;
+  const [isLevelHovered, setIsLevelHovered] = useState(false);
 
+  // Level & Birthday Logic
   const calculateLevel = () => {
     const birthDate = new Date(2008, 5, 20);
     const today = new Date();
@@ -119,6 +121,16 @@ const MainPage = ({
       age--;
     }
     return age;
+  };
+
+  const getDaysUntilBirthday = () => {
+    const today = new Date();
+    let nextBday = new Date(today.getFullYear(), 5, 20);
+    if (today > nextBday) {
+      nextBday.setFullYear(today.getFullYear() + 1);
+    }
+    const diffTime = Math.abs(nextBday - today);
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
 
   const calculateYearProgress = () => {
@@ -163,7 +175,6 @@ const MainPage = ({
       transition={{ duration: 1, ease: "easeOut" }}
       className="relative min-h-screen bg-[#08080c] overflow-hidden text-white font-sans selection:bg-white/10 cursor-none"
     >
-      {/* BRANDING: BIGGER & BOLDER */}
       <div className="fixed top-12 right-12 z-[100] opacity-40 font-black text-4xl tracking-tighter uppercase italic select-none font-mono">
         zorq.page
       </div>
@@ -225,16 +236,22 @@ const MainPage = ({
                   className="w-32 h-32 rounded-full border-4 border-zinc-800 object-cover shadow-2xl"
                 />
 
-                {/* FLASHING STATUS DOT */}
+                {/* BREATHING STATUS DOT (Bright to Dull) */}
                 <motion.div
-                  animate={{ opacity: [1, 0.4, 1], scale: [1, 1.1, 1] }}
+                  animate={{
+                    filter: [
+                      "brightness(1.5) drop-shadow(0 0 8px currentColor)",
+                      "brightness(0.6) drop-shadow(0 0 0px currentColor)",
+                      "brightness(1.5) drop-shadow(0 0 8px currentColor)",
+                    ],
+                  }}
                   transition={{
-                    duration: 2,
+                    duration: 2.5,
                     repeat: Infinity,
                     ease: "easeInOut",
                   }}
                   className="absolute bottom-2 right-2 w-6 h-6 rounded-full border-4 border-[#0f0f11]"
-                  style={{ backgroundColor: activeColor }}
+                  style={{ backgroundColor: activeColor, color: activeColor }}
                 />
 
                 {customStatus && (
@@ -259,13 +276,19 @@ const MainPage = ({
               </p>
 
               <div className="w-full space-y-3 text-left mb-auto">
-                <div className="bg-white/[0.03] border border-white/5 p-5 rounded-2xl w-full">
+                <motion.div
+                  onMouseEnter={() => setIsLevelHovered(true)}
+                  onMouseLeave={() => setIsLevelHovered(false)}
+                  className="bg-white/[0.03] border border-white/5 p-5 rounded-2xl w-full transition-colors hover:bg-white/[0.06]"
+                >
                   <div className="flex justify-between items-end mb-2">
-                    <p className="text-[9px] opacity-60 font-black uppercase">
-                      Current Level
+                    <p className="text-[9px] opacity-60 font-black uppercase transition-all">
+                      {isLevelHovered ? "Days Left" : "Current Level"}
                     </p>
                     <p className="text-2xl font-black tracking-tighter italic">
-                      {calculateLevel()}
+                      {isLevelHovered
+                        ? getDaysUntilBirthday()
+                        : calculateLevel()}
                     </p>
                   </div>
                   <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden relative">
@@ -281,10 +304,11 @@ const MainPage = ({
                       {calculateYearProgress().toFixed(1)}% EXP
                     </p>
                     <p className="text-[8px] opacity-40 font-bold uppercase tracking-widest">
-                      Next: LVL {calculateLevel() + 1}
+                      {isLevelHovered ? "Evolution: " : "Next: "} LVL{" "}
+                      {calculateLevel() + 1}
                     </p>
                   </div>
-                </div>
+                </motion.div>
               </div>
             </div>
             <button
@@ -385,7 +409,6 @@ const MainPage = ({
         </div>
       </div>
 
-      {/* BIGGER CLOCK AT BOTTOM CENTER */}
       <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] px-10 py-4 bg-white/[0.03] border border-white/10 rounded-full backdrop-blur-xl shadow-2xl">
         <p className="text-2xl font-black tracking-[0.4em] text-white/80 font-mono italic">
           {time}
