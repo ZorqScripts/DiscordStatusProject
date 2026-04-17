@@ -55,7 +55,7 @@ const TypewriterBio = ({ activeColor }) => {
 
     const timer = setTimeout(handleType, speed);
     return () => clearTimeout(timer);
-  }, [displayText, isDeleting, index]);
+  }, [displayText, isDeleting, index, roles, speed]);
 
   return (
     <p className="text-[9px] font-black uppercase tracking-[0.2em] mb-8 h-4">
@@ -120,7 +120,6 @@ const CommandPalette = ({ isOpen, onClose, activeColor }) => {
           >
             <div className="bg-[#0a0f0a] border border-[#222] p-4 rounded-sm relative overflow-hidden">
               <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.03),rgba(0,255,0,0.01),rgba(0,0,255,0.03))] z-10 pointer-events-none bg-[length:100%_3px,3px_100%]" />
-
               <div className="flex items-center justify-between mb-4 border-b border-green-900/30 pb-2">
                 <div className="flex items-center gap-2">
                   <Activity
@@ -133,7 +132,6 @@ const CommandPalette = ({ isOpen, onClose, activeColor }) => {
                 </div>
                 <div className="w-2 h-2 rounded-full bg-red-600 animate-ping" />
               </div>
-
               <div className="h-24 font-mono text-[10px] text-green-500/80 mb-4 overflow-hidden flex flex-col justify-end">
                 {history.map((line, i) => (
                   <div key={i} className="leading-tight">
@@ -141,7 +139,6 @@ const CommandPalette = ({ isOpen, onClose, activeColor }) => {
                   </div>
                 ))}
               </div>
-
               <div className="flex items-center gap-2 bg-black/50 p-2 border border-green-900/20">
                 <span className="text-green-500 text-xs font-mono">$</span>
                 <input
@@ -175,8 +172,6 @@ const MainPage = ({
   cardRef,
 }) => {
   const isPlaying = !!lanyard.spotify || lanyard.listening_to_spotify;
-  const customStatus = lanyard.activities?.find((a) => a.type === 4)?.state;
-  const [isLevelHovered, setIsLevelHovered] = useState(false);
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
   const [logs, setLogs] = useState([]);
 
@@ -264,7 +259,6 @@ const MainPage = ({
         onClose={() => setIsPaletteOpen(false)}
         activeColor={activeColor}
       />
-
       <div className="fixed top-12 right-12 z-[100] opacity-40 font-black text-4xl tracking-tighter uppercase italic select-none font-mono">
         zorq.page
       </div>
@@ -321,6 +315,7 @@ const MainPage = ({
                 <img
                   src={`https://cdn.discordapp.com/avatars/${lanyard.discord_user.id}/${lanyard.discord_user.avatar}.png?size=512`}
                   className="w-32 h-32 rounded-full border-4 border-zinc-800 object-cover shadow-2xl"
+                  alt="avatar"
                 />
                 <motion.div
                   animate={{
@@ -337,15 +332,9 @@ const MainPage = ({
               <h1 className="text-3xl font-black tracking-tighter mb-1 uppercase">
                 Zorq
               </h1>
-              {/* BIO TYPEWRITER ADDED HERE */}
               <TypewriterBio activeColor={activeColor} />
-
               <div className="w-full space-y-3 text-left mb-auto">
-                <motion.div
-                  onMouseEnter={() => setIsLevelHovered(true)}
-                  onMouseLeave={() => setIsLevelHovered(false)}
-                  className="bg-white/[0.03] border border-white/5 p-5 rounded-2xl w-full"
-                >
+                <div className="bg-white/[0.03] border border-white/5 p-5 rounded-2xl w-full">
                   <div className="flex justify-between items-end mb-2">
                     <p className="text-[9px] font-black uppercase tracking-widest opacity-60">
                       Current Level
@@ -362,7 +351,7 @@ const MainPage = ({
                       className="h-full"
                     />
                   </div>
-                </motion.div>
+                </div>
               </div>
             </div>
             <button
@@ -407,6 +396,7 @@ const MainPage = ({
                       <img
                         src={lanyard.spotify.album_art_url}
                         className="w-full h-full object-cover opacity-60"
+                        alt="album art"
                       />
                     ) : (
                       <Disc size={16} className="opacity-20 text-white" />
@@ -555,26 +545,14 @@ export default function App() {
   }, [cursorX, cursorY, cardRotateX, cardRotateY]);
 
   if (!lanyard) return <div className="min-h-screen bg-[#08080c]" />;
-  const status = lanyard.discord_status;
-  const statusColors = {
-    online: "#22c55e",
-    dnd: "#ef4444",
-    idle: "#f59e0b",
-    offline: "#64748b",
-  };
-  const activeColor = statusColors[status] || statusColors.offline;
+  const activeColor =
+    { online: "#22c55e", dnd: "#ef4444", idle: "#f59e0b", offline: "#64748b" }[
+      lanyard.discord_status
+    ] || "#64748b";
 
   return (
     <AnimatePresence mode="wait">
-      {!hasEntered ? (
-        <EntryScreen
-          key="entry"
-          onEnter={() => setHasEntered(true)}
-          activeColor={activeColor}
-          cursorX={cursorX}
-          cursorY={cursorY}
-        />
-      ) : (
+      {hasEntered ? (
         <MainPage
           key="main"
           lanyard={lanyard}
@@ -586,9 +564,22 @@ export default function App() {
           bgTextX={bgTextX}
           bgTextY={bgTextY}
           activeColor={activeColor}
-          status={status}
+          status={lanyard.discord_status}
           cardRef={mainCardRef}
         />
+      ) : (
+        <div
+          key="entry"
+          onClick={() => setHasEntered(true)}
+          className="fixed inset-0 bg-black flex flex-col items-center justify-center cursor-pointer"
+        >
+          <h1 className="text-white text-7xl font-black italic tracking-tighter">
+            ZORQ
+          </h1>
+          <p className="text-white/20 font-mono mt-4 uppercase tracking-[0.5em]">
+            Click to Establish Connection
+          </p>
+        </div>
       )}
     </AnimatePresence>
   );
