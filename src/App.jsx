@@ -113,7 +113,7 @@ export default function App() {
 
   return (
     <div className="relative min-h-screen bg-[#08080c] overflow-hidden text-white font-sans selection:bg-white/10">
-      {/* 1. CURSOR GLOW (The Orb) */}
+      {/* CURSOR GLOW */}
       <motion.div
         className="fixed top-0 left-0 w-[400px] h-[400px] rounded-full blur-[100px] opacity-[0.15] pointer-events-none z-0"
         style={{
@@ -143,7 +143,7 @@ export default function App() {
         </h1>
       </motion.div>
 
-      {/* 2. DYNAMIC CURSOR (The Dot) */}
+      {/* DYNAMIC CURSOR */}
       <motion.div
         className="fixed top-0 left-0 w-8 h-8 rounded-full pointer-events-none z-[9999] mix-blend-difference shadow-[0_0_20px_rgba(255,255,255,0.3)]"
         style={{
@@ -185,7 +185,6 @@ export default function App() {
                 Full-Stack Architect
               </p>
 
-              {/* LONG HOLDERS: Process & Clock matched to button length */}
               <div className="w-full space-y-3 text-left mb-auto">
                 <div className="bg-white/[0.03] border border-white/5 p-4 rounded-2xl w-full">
                   <p className="text-[9px] opacity-30 font-black uppercase mb-1">
@@ -254,12 +253,11 @@ export default function App() {
                     ) : (
                       <Disc size={16} className="opacity-20 text-white" />
                     )}
-                    {/* Vinyl Hole Effect */}
                     <div className="absolute w-2 h-2 bg-[#0f0f11] rounded-full border border-white/10" />
                   </motion.div>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[8px] font-black uppercase tracking-widest text-green-500 mb-1 flex items-center gap-1">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-green-500 mb-1 flex items-center gap-1">
                     <div
                       className={`w-1.5 h-1.5 rounded-full ${isPlaying ? "bg-green-500 animate-pulse" : "bg-white/10"}`}
                     />
