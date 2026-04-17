@@ -139,7 +139,7 @@ export default function App() {
   return (
     // DEPTH UPDATE 1: LIGHTER BACKGROUND COLOR (changed from #0c0c0c to #18181b)
     <div className="relative min-h-screen bg-[#18181b] overflow-hidden selection:bg-red-500/30">
-      {/* DEPTH UPDATE 3: SLIGHTLY BRIGHTER BACKGROUND GLOW (increased opacity) */}
+      {/* DEPTH UPDATE 3: SLIGHTLY BRIGHTER BACKGROUND GLOW (increased size and opacity) */}
       <motion.div
         className="fixed top-0 left-0 w-[700px] h-[700px] rounded-full blur-[180px] opacity-[0.25] pointer-events-none z-0"
         style={{
@@ -169,7 +169,7 @@ export default function App() {
             <motion.div
               ref={cardRef}
               style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-              // DEPTH UPDATE 2: ADDED HEAVY DROP SHADOW (shadow-[0_40px_100px_rgba(0,0,0,0.6)])
+              // DEPTH UPDATE 2: ADDED HEAVY DROP SHADOW (shadow-[0_40px_100px_rgba(0,0,0,0.6)]) and slightly solid background
               className="w-full max-w-[360px] bg-zinc-900/60 border border-white/5 backdrop-blur-3xl p-8 rounded-[2.5rem] text-center shadow-[0_40px_100px_rgba(0,0,0,0.6)]"
             >
               <div
@@ -231,7 +231,7 @@ export default function App() {
 
           {/* Secondary Info Grid */}
           <div className="lg:col-span-8 flex flex-col gap-6">
-            {/* Same Shadow update applied to project grid elements for consistency */}
+            {/* DEPTH UPDATE: Project grid elements also get shadows for consistency */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {projects.map((proj, i) => (
                 <div
