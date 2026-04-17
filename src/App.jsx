@@ -8,6 +8,7 @@ import {
   Server,
   Share2,
   Disc,
+  Music,
 } from "lucide-react";
 
 const DISCORD_ID = "900965149496737874";
@@ -33,11 +34,6 @@ const projects = [
     desc: "Minecraft-to-Discord relay bridges and live data fetching.",
     icon: <Share2 size={16} />,
   },
-  {
-    name: "Web Infrastructure",
-    desc: "High-availability web hosting and frontend deployment.",
-    icon: <Globe size={20} />,
-  },
 ];
 
 export default function App() {
@@ -45,20 +41,15 @@ export default function App() {
   const [time, setTime] = useState(new Date().toLocaleTimeString());
   const cardRef = useRef(null);
 
-  // Fast Cursor for Responsiveness
   const cursorX = useSpring(0, { stiffness: 600, damping: 25 });
   const cursorY = useSpring(0, { stiffness: 600, damping: 25 });
-
-  // Tilt Settings
   const cardX = useSpring(0, { stiffness: 80, damping: 40 });
   const cardY = useSpring(0, { stiffness: 80, damping: 40 });
 
   const rotateX = useTransform(cardY, [-0.5, 0.5], [-15, 15]);
   const rotateY = useTransform(cardX, [-0.5, 0.5], [15, -15]);
-
-  // BACKGROUND PARALLAX: Text subtlely moves inverted to the cursor
-  const bgTextX = useTransform(cursorX, [0, window.innerWidth], [20, -20]);
-  const bgTextY = useTransform(cursorY, [0, window.innerHeight], [20, -20]);
+  const bgTextX = useTransform(cursorX, [0, 2000], [20, -20]);
+  const bgTextY = useTransform(cursorY, [0, 1000], [20, -20]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -83,25 +74,10 @@ export default function App() {
     const handleGlobalMouse = (e) => {
       cursorX.set(e.clientX);
       cursorY.set(e.clientY);
-
       if (cardRef.current) {
         const rect = cardRef.current.getBoundingClientRect();
-        const buffer = 150;
-        const isInside =
-          e.clientX >= rect.left - buffer &&
-          e.clientX <= rect.right + buffer &&
-          e.clientY >= rect.top - buffer &&
-          e.clientY <= rect.bottom + buffer;
-
-        if (isInside) {
-          const relX = (e.clientX - rect.left) / rect.width - 0.5;
-          const relY = (e.clientY - rect.top) / rect.height - 0.5;
-          cardX.set(relX);
-          cardY.set(relY);
-        } else {
-          cardX.set(0);
-          cardY.set(0);
-        }
+        cardX.set((e.clientX - rect.left) / rect.width - 0.5);
+        cardY.set((e.clientY - rect.top) / rect.height - 0.5);
       }
     };
 
@@ -111,7 +87,7 @@ export default function App() {
       clearInterval(timeInterval);
       window.removeEventListener("mousemove", handleGlobalMouse);
     };
-  }, [cardX, cardY, cursorX, cursorY]);
+  }, []);
 
   if (!lanyard)
     return (
@@ -133,7 +109,7 @@ export default function App() {
 
   return (
     <div className="relative min-h-screen bg-[#08080c] overflow-hidden selection:bg-white/10">
-      {/* 1. Moving Glow Orb (Behind Glass, Behind Text) */}
+      {/* Background Glow */}
       <motion.div
         className="fixed top-0 left-0 w-[550px] h-[550px] rounded-full blur-[130px] opacity-[0.22] pointer-events-none z-0"
         style={{
@@ -145,7 +121,7 @@ export default function App() {
         }}
       />
 
-      {/* 2. RESPONSIVE BACKGROUND TITLE: Updated to ZORQ and Inverting */}
+      {/* Clean ZORQ Background Title */}
       <motion.div
         style={{
           x: bgTextX,
@@ -153,17 +129,17 @@ export default function App() {
           translateX: "-50%",
           translateY: "-50%",
         }}
-        className="fixed top-1/2 left-1/2 z-1 pointer-events-none mix-blend-difference"
+        className="fixed top-1/2 left-1/2 z-1 pointer-events-none"
       >
         <h1
-          className="font-sans font-black tracking-[-0.08em] text-white leading-none"
+          className="font-sans font-black tracking-[-0.08em] text-zinc-900 leading-none select-none"
           style={{ fontSize: "28vw" }}
         >
           ZORQ
         </h1>
       </motion.div>
 
-      {/* 3. SOLID DYNAMIC INVERTING CURSOR: Color now matches active status */}
+      {/* Dynamic Inverting Cursor */}
       <motion.div
         className="fixed top-0 left-0 w-8 h-8 rounded-full pointer-events-none z-[9999] mix-blend-difference"
         style={{
@@ -175,10 +151,9 @@ export default function App() {
         }}
       />
 
-      {/* Main Content Layer */}
       <div className="min-h-screen text-white/90 font-sans flex items-center justify-center p-4 lg:p-12 z-10 relative">
         <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Main Card */}
+          {/* Profile Card */}
           <div className="lg:col-span-4 flex justify-center">
             <motion.div
               ref={cardRef}
@@ -245,7 +220,7 @@ export default function App() {
             </motion.div>
           </div>
 
-          {/* Info Panels */}
+          {/* Info Panels & Spotify */}
           <div className="lg:col-span-8 flex flex-col gap-6 relative">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {projects.map((proj, i) => (
@@ -265,34 +240,70 @@ export default function App() {
                   </p>
                 </div>
               ))}
-              <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-6 backdrop-blur-md flex flex-col justify-between shadow-xl">
-                <div>
-                  <div
-                    className="flex items-center gap-2 text-[10px] font-black uppercase mb-3"
-                    style={{ color: activeStatusColor }}
-                  >
-                    <Disc
-                      className={lanyard.spotify ? "animate-spin-slow" : ""}
-                      size={14}
-                    />{" "}
-                    {lanyard.spotify ? "Live Signal" : "System Standby"}
-                  </div>
-                  <p className="text-sm text-white/60 font-medium leading-snug">
-                    {lanyard.spotify
-                      ? lanyard.spotify.song
-                      : "Optimizing system resources."}
-                  </p>
-                </div>
-                <div className="mt-6 h-1 w-full bg-white/10 rounded-full overflow-hidden">
+
+              {/* CUSTOM VINYL SPOTIFY PLAYER */}
+              <div className="md:col-span-2 bg-white/[0.03] border border-white/10 rounded-[2rem] p-6 backdrop-blur-2xl shadow-2xl flex items-center gap-6 relative overflow-hidden group">
+                {/* Vinyl Record Animation */}
+                <div className="relative w-24 h-24 flex-shrink-0">
                   <motion.div
-                    animate={{ width: ["10%", "90%", "10%"] }}
-                    transition={{ duration: 8, repeat: Infinity }}
-                    className="h-full"
-                    style={{ backgroundColor: activeStatusColor }}
-                  />
+                    animate={lanyard.spotify ? { rotate: 360 } : {}}
+                    transition={{
+                      duration: 4,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
+                    className="w-full h-full rounded-full bg-zinc-900 border-[6px] border-zinc-800 shadow-2xl relative flex items-center justify-center overflow-hidden"
+                  >
+                    {lanyard.spotify ? (
+                      <img
+                        src={lanyard.spotify.album_art_url}
+                        className="w-10 h-10 rounded-full object-cover opacity-80"
+                      />
+                    ) : (
+                      <div className="w-4 h-4 rounded-full bg-zinc-700" />
+                    )}
+                    {/* Vinyl Grooves */}
+                    <div className="absolute inset-0 rounded-full border border-white/5" />
+                    <div className="absolute inset-4 rounded-full border border-white/5" />
+                  </motion.div>
+                  {/* Record Needle */}
+                  <div className="absolute top-0 -right-1 w-1 h-12 bg-zinc-600 rounded-full origin-top rotate-[25deg] shadow-lg" />
+                </div>
+
+                {/* Track Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Music size={12} className="text-green-500 animate-pulse" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30">
+                      Listening to Spotify
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-bold truncate leading-tight">
+                    {lanyard.spotify ? lanyard.spotify.song : "System Silence"}
+                  </h3>
+                  <p className="text-xs text-white/40 font-medium truncate mb-4">
+                    {lanyard.spotify
+                      ? `by ${lanyard.spotify.artist}`
+                      : "Standing by for signal..."}
+                  </p>
+
+                  {/* Progress Bar */}
+                  <div className="relative h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: "0%" }}
+                      animate={{ width: lanyard.spotify ? "65%" : "0%" }}
+                      transition={{ duration: 2 }}
+                      className="h-full bg-white/40 rounded-full shadow-[0_0_10px_rgba(255,255,255,0.2)]"
+                    />
+                  </div>
+                  <div className="flex justify-between mt-2 text-[9px] font-mono text-white/20 uppercase tracking-tighter">
+                    <span>1:45</span>
+                    <span>{lanyard.spotify ? "Live" : "0:00"}</span>
+                  </div>
                 </div>
               </div>
             </div>
+
             <div className="grid grid-cols-3 gap-4">
               <StatBox
                 label="Status"
