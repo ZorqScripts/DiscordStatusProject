@@ -22,6 +22,7 @@ import {
   X,
   Monitor,
   HardDrive,
+  Laptop,
 } from "lucide-react";
 
 const DISCORD_ID = "900965149496737874";
@@ -68,6 +69,49 @@ const SpecsModal = ({ isOpen, onClose, activeColor }) => {
                 <X size={18} />
               </button>
             </div>
+
+            {/* --- NEW: Glowing Laptop Visual --- */}
+            <div className="relative py-12 flex justify-center items-center bg-gradient-to-b from-white/[0.02] to-transparent">
+              <motion.div
+                animate={{
+                  filter: [
+                    `drop-shadow(0 0 10px ${activeColor}44)`,
+                    `drop-shadow(0 0 25px ${activeColor}aa)`,
+                    `drop-shadow(0 0 10px ${activeColor}44)`,
+                  ],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+                className="relative z-10"
+              >
+                <Laptop
+                  size={80}
+                  style={{ color: activeColor }}
+                  strokeWidth={1}
+                />
+
+                {/* Scanning Effect Overlay */}
+                <motion.div
+                  initial={{ top: "-20%", opacity: 0 }}
+                  animate={{ top: "120%", opacity: [0, 1, 0] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                  className="absolute inset-0 w-full h-[2px] blur-[2px] z-20"
+                  style={{ backgroundColor: activeColor }}
+                />
+              </motion.div>
+
+              {/* Radial glow background */}
+              <div
+                className="absolute inset-0 opacity-10 pointer-events-none"
+                style={{
+                  background: `radial-gradient(circle, ${activeColor} 0%, transparent 70%)`,
+                }}
+              />
+            </div>
+
             <div className="p-8 space-y-6">
               {specs.map((s, i) => (
                 <div key={i} className="flex items-center gap-4 group">
@@ -208,7 +252,6 @@ const EntryScreen = ({ onEnter, activeColor, cursorX, cursorY }) => {
       />
       <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] brightness-100 pointer-events-none" />
 
-      {/* --- FIX: Elevated cursor z-index to stay visible above modals --- */}
       <motion.div
         className="fixed top-0 left-0 w-8 h-8 rounded-full pointer-events-none z-[40000] mix-blend-difference shadow-[0_0_20px_rgba(255,255,255,0.3)]"
         style={{
@@ -453,7 +496,6 @@ const MainPage = ({
         </h1>
       </motion.div>
 
-      {/* --- FIX: Custom cursor z-index increased to ensure visibility over blur and modals --- */}
       <motion.div
         className="fixed top-0 left-0 w-8 h-8 rounded-full pointer-events-none z-[40000] mix-blend-difference shadow-[0_0_20px_rgba(255,255,255,0.3)]"
         style={{
