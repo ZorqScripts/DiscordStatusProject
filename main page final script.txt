@@ -19,9 +19,86 @@ import {
   Activity,
   Power,
   Flame,
+  X,
+  Monitor,
+  HardDrive,
 } from "lucide-react";
 
 const DISCORD_ID = "900965149496737874";
+
+// --- SPECS MODAL ---
+const SpecsModal = ({ isOpen, onClose, activeColor }) => {
+  const specs = [
+    { label: "PROCESSOR", value: "Intel i9 13th Gen", icon: <Cpu size={14} /> },
+    { label: "GRAPHICS", value: "RTX 4060Ti", icon: <Activity size={14} /> },
+    { label: "MEMORY", value: "32GB DDR4 RAM", icon: <Zap size={14} /> },
+    { label: "DISPLAY", value: "240Hz Screen", icon: <Monitor size={14} /> },
+    {
+      label: "CHASSIS",
+      value: "ROG Strix G18 (Latest)",
+      icon: <HardDrive size={14} />,
+    },
+  ];
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[30000] flex items-center justify-center backdrop-blur-md bg-black/60 p-4 cursor-default"
+          onClick={onClose}
+        >
+          <motion.div
+            initial={{ scale: 0.9, y: 20 }}
+            animate={{ scale: 1, y: 0 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            className="w-full max-w-[450px] bg-[#0a0a0c] border border-white/10 rounded-[2rem] overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 border-b border-white/5 flex justify-between items-center">
+              <h2 className="text-xs font-black uppercase tracking-[0.3em] opacity-50">
+                System Specifications
+              </h2>
+              <button
+                onClick={onClose}
+                className="hover:rotate-90 transition-transform"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="p-8 space-y-6">
+              {specs.map((s, i) => (
+                <div key={i} className="flex items-center gap-4 group">
+                  <div
+                    style={{ color: activeColor }}
+                    className="opacity-40 group-hover:opacity-100 transition-opacity"
+                  >
+                    {s.icon}
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-widest opacity-30 mb-0.5">
+                      {s.label}
+                    </p>
+                    <p className="text-sm font-bold tracking-tight text-white/90">
+                      {s.value}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="p-4 bg-white/[0.02] text-center">
+              <p className="font-mono text-[8px] opacity-20 uppercase tracking-widest">
+                Hardware ID: ROG-STRIX-G18-V2026
+              </p>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
 
 // --- SMD COMMAND PALETTE ---
 const CommandPalette = ({ isOpen, onClose, activeColor }) => {
@@ -131,8 +208,9 @@ const EntryScreen = ({ onEnter, activeColor, cursorX, cursorY }) => {
       />
       <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] brightness-100 pointer-events-none" />
 
+      {/* --- FIX: Elevated cursor z-index to stay visible above modals --- */}
       <motion.div
-        className="fixed top-0 left-0 w-8 h-8 rounded-full pointer-events-none z-[10001] mix-blend-difference shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+        className="fixed top-0 left-0 w-8 h-8 rounded-full pointer-events-none z-[40000] mix-blend-difference shadow-[0_0_20px_rgba(255,255,255,0.3)]"
         style={{
           x: cursorX,
           y: cursorY,
@@ -157,15 +235,12 @@ const EntryScreen = ({ onEnter, activeColor, cursorX, cursorY }) => {
           />
           <div className="h-[1px] w-12 bg-gradient-to-l from-transparent to-white/20" />
         </div>
-
         <h1 className="text-5xl md:text-7xl font-black italic tracking-tighter text-white mb-2 selection:bg-none">
           WELCOME, <span style={{ color: activeColor }}>VISITOR.</span>
         </h1>
-
         <p className="font-mono text-[10px] tracking-[0.5em] uppercase text-white/30 mb-12">
           Establishing secure handshake <span className="animate-pulse">_</span>
         </p>
-
         <motion.div
           whileHover={{ scale: 1.05 }}
           className="group relative px-10 py-5 rounded-full border border-white/5 bg-white/[0.02] backdrop-blur-md overflow-hidden transition-all shadow-2xl"
@@ -192,36 +267,45 @@ const MainPage = ({
   time,
   cursorX,
   cursorY,
-  cardRotateX,
-  cardRotateY,
   bgTextX,
   bgTextY,
   activeColor,
   status,
-  cardRef,
 }) => {
   const isPlaying = !!lanyard.spotify || lanyard.listening_to_spotify;
   const customStatus = lanyard.activities?.find((a) => a.type === 4)?.state;
   const [isLevelHovered, setIsLevelHovered] = useState(false);
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
+  const [isSpecsOpen, setIsSpecsOpen] = useState(false);
   const [logs, setLogs] = useState([]);
   const [isLowPower, setIsLowPower] = useState(false);
   const [isOverclocked, setIsOverclocked] = useState(false);
 
-  // CMD key listener
+  const [progress, setProgress] = useState(0);
+  useEffect(() => {
+    if (isPlaying && lanyard.spotify) {
+      const total =
+        lanyard.spotify.timestamps.end - lanyard.spotify.timestamps.start;
+      const current = Date.now() - lanyard.spotify.timestamps.start;
+      setProgress(Math.min(Math.max((current / total) * 100, 0), 100));
+    }
+  }, [lanyard.spotify, isPlaying]);
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "`") {
         e.preventDefault();
         setIsPaletteOpen((prev) => !prev);
       }
-      if (e.key === "Escape") setIsPaletteOpen(false);
+      if (e.key === "Escape") {
+        setIsPaletteOpen(false);
+        setIsSpecsOpen(false);
+      }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // System Logs Generator
   useEffect(() => {
     const addLog = (msg) =>
       setLogs((prev) => [
@@ -245,7 +329,6 @@ const MainPage = ({
               "Encrypted link maintained",
               "Latency stabilized at 0.002ms",
             ];
-
         addLog(
           `SYSTEM: ${phrases[Math.floor(Math.random() * phrases.length)]}`,
         );
@@ -255,24 +338,19 @@ const MainPage = ({
     return () => clearInterval(interval);
   }, [isOverclocked]);
 
-  // Level & Birthday Logic
   const calculateLevel = () => {
     const birthDate = new Date(2008, 5, 20);
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
     const m = today.getMonth() - birthDate.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
     return age;
   };
 
   const getDaysUntilBirthday = () => {
     const today = new Date();
     let nextBday = new Date(today.getFullYear(), 5, 20);
-    if (today > nextBday) {
-      nextBday.setFullYear(today.getFullYear() + 1);
-    }
+    if (today > nextBday) nextBday.setFullYear(today.getFullYear() + 1);
     const diffTime = Math.abs(nextBday - today);
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
@@ -324,16 +402,19 @@ const MainPage = ({
             ? "contrast(1.2) saturate(1.5)"
             : "grayscale(0) brightness(1)",
       }}
-      transition={{ duration: 1, ease: "easeOut" }}
-      className={`relative min-h-screen bg-[#08080c] overflow-hidden text-white font-sans selection:bg-white/10 cursor-none ${isOverclocked ? "animate-pulse-slow" : ""}`}
+      className="relative min-h-screen bg-[#08080c] overflow-hidden text-white font-sans selection:bg-white/10 cursor-none"
     >
       <CommandPalette
         isOpen={isPaletteOpen}
         onClose={() => setIsPaletteOpen(false)}
         activeColor={activeColor}
       />
+      <SpecsModal
+        isOpen={isSpecsOpen}
+        onClose={() => setIsSpecsOpen(false)}
+        activeColor={activeColor}
+      />
 
-      {/* --- GLITCH OVERLAY (Overclock Only) --- */}
       {isOverclocked && (
         <div className="absolute inset-0 pointer-events-none z-[50] opacity-[0.05] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,2px_100%]" />
       )}
@@ -372,8 +453,9 @@ const MainPage = ({
         </h1>
       </motion.div>
 
+      {/* --- FIX: Custom cursor z-index increased to ensure visibility over blur and modals --- */}
       <motion.div
-        className="fixed top-0 left-0 w-8 h-8 rounded-full pointer-events-none z-[9999] mix-blend-difference shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+        className="fixed top-0 left-0 w-8 h-8 rounded-full pointer-events-none z-[40000] mix-blend-difference shadow-[0_0_20px_rgba(255,255,255,0.3)]"
         style={{
           x: cursorX,
           y: cursorY,
@@ -389,13 +471,7 @@ const MainPage = ({
 
       <div className="min-h-screen flex items-center justify-center p-6 z-10 relative">
         <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-          <motion.div
-            ref={cardRef}
-            style={{
-              rotateX: cardRotateX,
-              rotateY: cardRotateY,
-              transformStyle: "preserve-3d",
-            }}
+          <div
             className={`lg:col-span-4 bg-[#0f0f11] border border-white/5 p-8 rounded-[2.5rem] shadow-2xl flex flex-col items-center transition-all duration-500 ${isOverclocked ? "border-orange-500/20 shadow-orange-500/10" : ""}`}
           >
             <div className="flex flex-col items-center w-full">
@@ -461,7 +537,7 @@ const MainPage = ({
                 {isOverclocked ? "Overclocked Entity" : "Full-Stack Architect"}
               </p>
 
-              <div className="w-full space-y-3 text-left mb-auto">
+              <div className="w-full space-y-3 text-left">
                 <motion.div
                   onMouseEnter={() => setIsLevelHovered(true)}
                   onMouseLeave={() => setIsLevelHovered(false)}
@@ -513,6 +589,7 @@ const MainPage = ({
               </div>
             </div>
             <button
+              onClick={() => setIsSpecsOpen(true)}
               style={{
                 backgroundColor: isLowPower
                   ? "#222"
@@ -522,9 +599,9 @@ const MainPage = ({
               }}
               className="w-full mt-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:brightness-110 shadow-xl transition-all"
             >
-              Secure Link <ExternalLink size={14} />
+              View Specifications <Monitor size={14} />
             </button>
-          </motion.div>
+          </div>
 
           <div className="lg:col-span-8 flex flex-col gap-4 relative">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
@@ -552,16 +629,18 @@ const MainPage = ({
                 </div>
               ))}
 
-              <div className="bg-[#0f0f11] border border-white/10 rounded-[2rem] p-5 flex items-center gap-4 relative overflow-hidden group">
+              <div className="bg-[#0f0f11] border border-white/10 rounded-[2rem] p-5 flex items-center gap-4 relative overflow-hidden group cursor-default">
                 <div className="relative w-14 h-14 flex-shrink-0">
                   <motion.div
-                    animate={isPlaying && !isLowPower ? { rotate: 360 } : {}}
+                    animate={
+                      isPlaying && !isLowPower ? { rotate: 360 } : { rotate: 0 }
+                    }
                     transition={{
-                      duration: isOverclocked ? 1 : 3,
+                      duration: isOverclocked ? 1 : 4,
                       repeat: Infinity,
                       ease: "linear",
                     }}
-                    className="w-full h-full rounded-full bg-zinc-900 border-[3px] border-zinc-800 flex items-center justify-center shadow-lg overflow-hidden"
+                    className="w-full h-full rounded-full bg-zinc-900 border-[3px] border-zinc-800 flex items-center justify-center shadow-lg overflow-hidden relative z-0"
                   >
                     {isPlaying && lanyard.spotify ? (
                       <img
@@ -575,6 +654,7 @@ const MainPage = ({
                     <div className="absolute w-2 h-2 bg-[#0f0f11] rounded-full border border-white/10" />
                   </motion.div>
                 </div>
+
                 <div className="flex-1 min-w-0">
                   <p
                     className={`text-[14px] font-black uppercase tracking-widest mb-1 flex items-center gap-1 ${isLowPower ? "text-white/20" : isOverclocked ? "text-orange-500" : "text-green-500"}`}
@@ -593,10 +673,10 @@ const MainPage = ({
                       ? lanyard.spotify.song
                       : "Awaiting Signal..."}
                   </h3>
-                  <div className="mt-3 h-0.5 w-full bg-white/5 rounded-full overflow-hidden">
+                  <div className="relative mt-3 h-0.5 w-full bg-white/5 rounded-full overflow-hidden z-20">
                     <motion.div
-                      animate={{ width: isPlaying ? "70%" : "0%" }}
-                      className={`h-full ${isLowPower ? "bg-white/10" : isOverclocked ? "bg-orange-500 shadow-[0_0_15px_rgba(255,68,0,0.8)]" : "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]"}`}
+                      animate={{ width: isPlaying ? `${progress}%` : "0%" }}
+                      className={`h-full transition-all duration-1000 ${isLowPower ? "bg-white/10" : isOverclocked ? "bg-orange-500 shadow-[0_0_15px_rgba(255,68,0,0.8)]" : "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]"}`}
                     />
                   </div>
                 </div>
@@ -652,7 +732,6 @@ const MainPage = ({
         </div>
       </div>
 
-      {/* --- LIVE TERMINAL LOGS OVERLAY --- */}
       <div className="fixed bottom-0 left-0 w-full z-[100] px-8 pb-8 flex justify-between items-end pointer-events-none">
         <div className="flex flex-col gap-2 max-w-lg">
           <div className="flex items-center gap-2 mb-2 opacity-30">
@@ -689,7 +768,6 @@ const MainPage = ({
         </div>
 
         <div className="flex flex-col items-end gap-4 pointer-events-auto">
-          {/* Overclock Toggle */}
           <button
             onClick={() => setIsOverclocked(!isOverclocked)}
             className={`flex items-center gap-3 px-4 py-2 rounded-full border transition-all duration-500 ${isOverclocked ? "bg-orange-500 text-black border-orange-400 font-black shadow-[0_0_20px_rgba(255,68,0,0.5)]" : "bg-white/5 border-white/10 text-white/40 hover:text-white"}`}
@@ -702,7 +780,6 @@ const MainPage = ({
               {isOverclocked ? "CORE_OVERCLOCKED" : "SYSTEM_IDLE"}
             </span>
           </button>
-
           <button
             onClick={() => setIsLowPower(!isLowPower)}
             className={`flex items-center gap-3 px-4 py-2 rounded-full border transition-all duration-500 ${isLowPower ? "bg-white/10 border-white/20 text-white" : "bg-red-500/10 border-red-500/20 text-red-500 hover:bg-red-500/20"}`}
@@ -712,7 +789,6 @@ const MainPage = ({
               {isLowPower ? "ACTIVATE_CORE" : "LOW_POWER_MODE"}
             </span>
           </button>
-
           <div className="group flex items-center gap-3 px-4 py-2 bg-white/[0.02] border border-white/10 rounded-full opacity-40 hover:opacity-100 transition-opacity">
             <Terminal size={14} />
             <span className="text-[9px] font-bold uppercase tracking-[0.2em]">
@@ -738,12 +814,9 @@ export default function App() {
   const [hasEntered, setHasEntered] = useState(false);
   const [lanyard, setLanyard] = useState(null);
   const [time, setTime] = useState(new Date().toLocaleTimeString());
-  const mainCardRef = useRef(null);
 
   const cursorX = useSpring(0, { stiffness: 600, damping: 25 });
   const cursorY = useSpring(0, { stiffness: 600, damping: 25 });
-  const cardRotateX = useSpring(0, { stiffness: 100, damping: 30 });
-  const cardRotateY = useSpring(0, { stiffness: 100, damping: 30 });
 
   const bgTextX = useTransform(cursorX, [0, 2000], [20, -20]);
   const bgTextY = useTransform(cursorY, [0, 1000], [20, -20]);
@@ -770,29 +843,15 @@ export default function App() {
     const handleMouse = (e) => {
       cursorX.set(e.clientX);
       cursorY.set(e.clientY);
-      if (mainCardRef.current) {
-        const rect = mainCardRef.current.getBoundingClientRect();
-        const isNear =
-          e.clientX >= rect.left - 100 &&
-          e.clientX <= rect.right + 100 &&
-          e.clientY >= rect.top - 100 &&
-          e.clientY <= rect.bottom + 100;
-        if (isNear) {
-          cardRotateX.set((e.clientY - (rect.top + rect.height / 2)) / 20);
-          cardRotateY.set(-(e.clientX - (rect.left + rect.width / 2)) / 20);
-        } else {
-          cardRotateX.set(0);
-          cardRotateY.set(0);
-        }
-      }
     };
+
     window.addEventListener("mousemove", handleMouse);
     return () => {
       clearInterval(dInt);
       clearInterval(tInt);
       window.removeEventListener("mousemove", handleMouse);
     };
-  }, [cursorX, cursorY, cardRotateX, cardRotateY]);
+  }, [cursorX, cursorY]);
 
   if (!lanyard) return <div className="min-h-screen bg-[#08080c]" />;
 
@@ -822,13 +881,10 @@ export default function App() {
           time={time}
           cursorX={cursorX}
           cursorY={cursorY}
-          cardRotateX={cardRotateX}
-          cardRotateY={cardRotateY}
           bgTextX={bgTextX}
           bgTextY={bgTextY}
           activeColor={activeColor}
           status={status}
-          cardRef={mainCardRef}
         />
       )}
     </AnimatePresence>
